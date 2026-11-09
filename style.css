@@ -100,7 +100,7 @@ button { font: inherit; color: inherit; }
 .brand img { display: block; border-radius: 5px; }
 .lang-btn { width: auto; min-width: 32px; padding: 0 6px; font-size: 12px; font-weight: 700; letter-spacing: .03em; }
 .brand b { color: var(--accent); }
-.sb-maker { color: var(--muted); text-decoration: none; }
+.sb-maker { color: var(--muted); text-decoration: none; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .sb-maker:hover { color: var(--accent); text-decoration: underline; }
 .about { margin: 0; line-height: 1.6; color: var(--muted); }
 .about a { color: var(--accent); }

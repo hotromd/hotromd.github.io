@@ -48,8 +48,9 @@
     "<li>Data is stored only in this browser. Use <b>Back up</b> (the ⋮ button below the list) to keep a safe copy.</li>" +
     "</ul>" +
     "<h3>About</h3><p class=\"about\"><b>MD Helper</b> (<a href=\"https://hotromd.github.io/\">hotromd.github.io</a>) is a product of " +
-    "<a href=\"https://hotroso.github.io/\" target=\"_blank\" rel=\"noopener\">Hỗ Trợ Giải Pháp Số</a> (Digital Solutions Support). " +
-    "Your documents stay in this browser on this device and are never sent to a server.</p>";
+    "<a href=\"https://hotroso.github.io/\" target=\"_blank\" rel=\"noopener\">Hỗ Trợ Giải Pháp Số</a> (hotroso.github.io). " +
+    "Your documents stay in this browser on this device and are never sent to a server.</p>" +
+    "<p class=\"about\">© 2026 Hỗ Trợ Giải Pháp Số. All rights reserved.</p>";
 
   var helpVi =
     '<div class="help-cols">' +
@@ -88,11 +89,12 @@
     "<li>Dữ liệu chỉ lưu trong trình duyệt này. Dùng <b>Sao lưu</b> (nút ⋮ cuối danh sách) để giữ bản an toàn.</li>" +
     "</ul>" +
     "<h3>Giới thiệu</h3><p class=\"about\"><b>MD Helper</b> (<a href=\"https://hotromd.github.io/\">hotromd.github.io</a>) là một sản phẩm của " +
-    "<a href=\"https://hotroso.github.io/\" target=\"_blank\" rel=\"noopener\">Hỗ Trợ Giải Pháp Số</a>. " +
-    "Tài liệu của bạn chỉ lưu trong trình duyệt trên máy này, không gửi lên máy chủ nào.</p>";
+    "<a href=\"https://hotroso.github.io/\" target=\"_blank\" rel=\"noopener\">Hỗ Trợ Giải Pháp Số</a> (hotroso.github.io). " +
+    "Tài liệu của bạn chỉ lưu trong trình duyệt trên máy này, không gửi lên máy chủ nào.</p>" +
+    "<p class=\"about\">© 2026 Hỗ Trợ Giải Pháp Số. Bảo lưu mọi quyền.</p>";
 
   var welcomeEn = "# Welcome to MD Helper\n\n" +
-    "> A product of [Hỗ Trợ Giải Pháp Số](https://hotroso.github.io/). " +
+    "> A product of [Hỗ Trợ Giải Pháp Số](https://hotroso.github.io/) (hotroso.github.io). All rights reserved. " +
     "Your documents are stored only in this browser.\n\n" +
     "Paste or type Markdown on the left; the preview appears on the right.\n\n" +
     "## Highlights\n\n" +
@@ -111,7 +113,7 @@
     "> Press `Ctrl+/` to see every shortcut.\n";
 
   var welcomeVi = "# Chào mừng đến MD Helper\n\n" +
-    "> Một sản phẩm của [Hỗ Trợ Giải Pháp Số](https://hotroso.github.io/). " +
+    "> Một sản phẩm của [Hỗ Trợ Giải Pháp Số](https://hotroso.github.io/) (hotroso.github.io). Bảo lưu mọi quyền. " +
     "Tài liệu chỉ lưu trong trình duyệt trên máy bạn.\n\n" +
     "Dán hoặc gõ markdown vào khung bên trái, bản xem trước hiện bên phải.\n\n" +
     "## Có gì\n\n" +
@@ -193,7 +195,7 @@
       "split.aria": "Resize panes",
       "preview.empty": "Nothing here yet. Type Markdown in the editor to preview it here.",
       "zoom.aria": "Font size", "zoom.dec": "Smaller text", "zoom.inc": "Larger text",
-      "maker": "A product of Hỗ Trợ Giải Pháp Số",
+      "maker": "© 2026 · A product of Hỗ Trợ Giải Pháp Số (hotroso.github.io). All rights reserved.",
       "drop": "Drop Markdown files here to open them",
 
       "welcome": welcomeEn,
@@ -350,7 +352,7 @@
       "split.aria": "Thay đổi độ rộng khung",
       "preview.empty": "Chưa có nội dung. Gõ markdown ở khung soạn thảo để xem trước tại đây.",
       "zoom.aria": "Cỡ chữ", "zoom.dec": "Giảm cỡ chữ", "zoom.inc": "Tăng cỡ chữ",
-      "maker": "Sản phẩm của Hỗ Trợ Giải Pháp Số",
+      "maker": "© 2026 · Một sản phẩm của Hỗ Trợ Giải Pháp Số (hotroso.github.io). Bảo lưu mọi quyền.",
       "drop": "Thả file markdown vào đây để mở",
 
       "welcome": welcomeVi,
