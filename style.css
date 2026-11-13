@@ -377,6 +377,14 @@ button { font: inherit; color: inherit; }
 }
 .toolbar button:hover { background: var(--hover); color: var(--text); }
 .toolbar .i { width: 16px; height: 16px; }
+.toolbar select {
+  height: 28px; max-width: 150px; padding: 0 6px; border: 1px solid var(--border-soft);
+  border-radius: 6px; background: var(--surface); color: var(--text); font-size: 12px;
+}
+.toolbar .pro-only { display: none; }
+html[data-mode="pro"] .toolbar .pro-only { display: inline-flex; }
+.toolbar .pro-color { align-items: center; gap: 3px; padding: 0 3px; color: var(--muted); font-weight: 600; }
+.toolbar .pro-color input { width: 16px; height: 18px; padding: 0; border: 0; background: transparent; cursor: pointer; }
 .tb-sep { width: 1px; height: 18px; background: var(--border); margin: 0 6px; flex-shrink: 0; }
 .tb-spacer { flex: 1; }
 .toolbar .tb-toggle { font-size: 12px; }
@@ -414,6 +422,11 @@ main { flex: 1; display: flex; min-height: 0; min-width: 0; }
 #app[data-mode="edit"] .pane-view, #app[data-mode="edit"] .split-handle { display: none; }
 #app[data-mode="edit"] #editor { padding-left: max(24px, calc((100% - 860px) / 2)); padding-right: max(24px, calc((100% - 860px) / 2)); }
 #app[data-mode="view"] .pane-edit, #app[data-mode="view"] .split-handle { display: none; }
+#app[data-mode="pro"] .pane-edit, #app[data-mode="pro"] .split-handle { display: none; }
+#app[data-mode="pro"] #preview { display: none; }
+#app[data-mode="pro"] #pro-editor { display: block; }
+.pro-editor { display: none; min-height: 100%; outline: none; }
+.pro-editor:focus-visible { outline: none; }
 
 /* Preview */
 .markdown-body {

@@ -103,6 +103,7 @@
     <button id="tab-edit" role="tab" aria-selected="false" data-i18n-title="mode.editTitle" title="Edit (Alt+1)"><svg class="i"><use href="#i-edit"/></svg><span class="lbl" data-i18n="mode.edit">Edit</span></button>
     <button id="tab-split" role="tab" aria-selected="false" data-i18n-title="mode.splitTitle" title="Split view (Alt+2)"><svg class="i"><use href="#i-columns"/></svg><span class="lbl" data-i18n="mode.split">Split</span></button>
     <button id="tab-view" role="tab" aria-selected="false" data-i18n-title="mode.viewTitle" title="Preview (Alt+3)"><svg class="i"><use href="#i-eye"/></svg><span class="lbl" data-i18n="mode.view">Preview</span></button>
+    <button id="tab-pro" role="tab" aria-selected="false" data-i18n-title="mode.proTitle" title="Professional editing (Alt+4)"><svg class="i"><use href="#i-edit"/></svg><span class="lbl" data-i18n="mode.pro">Pro</span></button>
   </div>
 
   <div id="gsearch" class="gsearch">
@@ -207,6 +208,20 @@
       <button data-cmd="bold" data-i18n-title="tb.bold" title="Bold (Ctrl+B)"><b>B</b></button>
       <button data-cmd="italic" data-i18n-title="tb.italic" title="Italic (Ctrl+I)"><i>I</i></button>
       <button data-cmd="strike" data-i18n-title="tb.strike" title="Strikethrough"><s>S</s></button>
+      <span class="tb-sep pro-only"></span>
+      <button class="pro-only" data-pro-command="underline" data-i18n-title="tb.underline" title="Underline"><u>U</u></button>
+      <select id="pro-font-family" class="pro-only" data-i18n-aria="tb.fontFamily" aria-label="Font family" title="Font family">
+        <option value="">Font</option><option value="Arial">Arial</option><option value="Georgia">Georgia</option>
+        <option value="Tahoma">Tahoma</option><option value="Times New Roman">Times New Roman</option>
+        <option value="Verdana">Verdana</option><option value="monospace">Monospace</option>
+      </select>
+      <select id="pro-font-size" class="pro-only" data-i18n-aria="tb.fontSize" aria-label="Font size" title="Font size">
+        <option value="">Size</option><option value="1">10</option><option value="2">12</option>
+        <option value="3">14</option><option value="4">18</option><option value="5">24</option>
+        <option value="6">32</option><option value="7">48</option>
+      </select>
+      <label class="pro-color pro-only" data-i18n-title="tb.textColor" title="Text color">A<input id="pro-text-color" type="color" value="#24292f" data-i18n-aria="tb.textColor" aria-label="Text color"></label>
+      <label class="pro-color pro-only" data-i18n-title="tb.highlight" title="Highlight color">▰<input id="pro-highlight-color" type="color" value="#fff2a8" data-i18n-aria="tb.highlight" aria-label="Highlight color"></label>
       <span class="tb-sep"></span>
       <button data-cmd="code" data-i18n-title="tb.code" title="Inline code (Ctrl+E)"><svg class="i"><use href="#i-code"/></svg></button>
       <button data-cmd="codeblock" data-i18n-title="tb.codeblock" title="Code block"><svg class="i"><use href="#i-codeblock"/></svg></button>
@@ -219,6 +234,14 @@
       <button data-cmd="task" data-i18n-title="tb.task" title="Task list"><svg class="i"><use href="#i-task"/></svg></button>
       <button data-cmd="table" data-i18n-title="tb.table" title="Insert table"><svg class="i"><use href="#i-table"/></svg></button>
       <button data-cmd="hr" data-i18n-title="tb.hr" title="Horizontal rule"><svg class="i"><use href="#i-hr"/></svg></button>
+      <span class="tb-sep pro-only"></span>
+      <button class="pro-only" data-pro-command="justifyLeft" data-i18n-title="tb.alignLeft" title="Align left">≡</button>
+      <button class="pro-only" data-pro-command="justifyCenter" data-i18n-title="tb.alignCenter" title="Center">≣</button>
+      <button class="pro-only" data-pro-command="justifyRight" data-i18n-title="tb.alignRight" title="Align right">≡</button>
+      <button class="pro-only" data-pro-command="indent" data-i18n-title="tb.indent" title="Indent">→</button>
+      <button class="pro-only" data-pro-command="outdent" data-i18n-title="tb.outdent" title="Outdent">←</button>
+      <button class="pro-only" data-pro-command="undo" data-i18n-title="tb.undo" title="Undo">↶</button>
+      <button class="pro-only" data-pro-command="redo" data-i18n-title="tb.redo" title="Redo">↷</button>
       <span class="tb-spacer"></span>
       <button id="btn-sync" class="tb-toggle" aria-pressed="true" data-i18n-title="sync.title" title="Sync scrolling between editor and preview">
         <svg class="i"><use href="#i-sync"/></svg><span class="lbl" data-i18n="sync.label">Sync scroll</span>
@@ -239,6 +262,10 @@
           <article id="preview" class="markdown-body" tabindex="0" data-i18n-aria="preview.label"
             aria-label="Markdown preview" data-i18n-empty="preview.empty"
             data-empty="Nothing here yet. Type Markdown in the editor to preview it here."></article>
+          <article id="pro-editor" class="markdown-body pro-editor" contenteditable="true" tabindex="0"
+            role="textbox" aria-multiline="true" data-i18n-aria="pro.editorLabel"
+            aria-label="Professional editing area" data-i18n-empty="pro.empty"
+            data-empty="Type or paste formatted content here."></article>
         </section>
       </main>
       <nav id="outline" class="outline" data-i18n-aria="outline.label" aria-label="Outline" hidden>
