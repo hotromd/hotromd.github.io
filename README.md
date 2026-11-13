@@ -5,6 +5,7 @@
 ## Tính năng
 
 - Xem trước Markdown trực tiếp, chuyển đổi giữa chế độ soạn thảo, chia đôi và xem trước.
+- Chế độ Chuyên nghiệp cho phép sửa trực tiếp và dán nội dung có định dạng bằng toolbar; tài liệu vẫn lưu dưới dạng Markdown, còn kiểu Markdown không biểu diễn được dùng HTML nhúng đã làm sạch.
 - Dán nội dung có định dạng từ Excel và các ứng dụng khác trong chế độ xem trước; hỗ trợ bảng cùng các định dạng phổ biến như màu, viền, font và căn lề.
 - Quản lý nhiều tài liệu bằng thư mục, ghim, tìm kiếm và mục lục.
 - Hỗ trợ tô màu code, sơ đồ Mermaid, danh sách công việc và giao diện sáng/tối.
