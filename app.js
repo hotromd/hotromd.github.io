@@ -1524,6 +1524,186 @@
     return null;
   }
 
+  var pasteBlock = null;
+  var PASTE_HTML_TAGS = new Set((
+    "a b blockquote br caption code col colgroup dd del div dl dt em font h1 h2 h3 h4 h5 h6 " +
+    "hr i img ins li ol p pre s small span strong sub sup table tbody td tfoot th thead tr u ul"
+  ).split(/\s+/));
+  var PASTE_DROP_TAGS = new Set((
+    "audio button canvas embed form iframe input link meta object script select style svg textarea video"
+  ).split(/\s+/));
+  var PASTE_CSS_PROPERTIES = new Set((
+    "background background-color border border-bottom border-bottom-color border-bottom-style border-bottom-width " +
+    "border-collapse border-color border-left border-left-color border-left-style border-left-width " +
+    "border-right border-right-color border-right-style border-right-width border-spacing border-style " +
+    "border-top border-top-color border-top-style border-top-width border-width color font-family font-size " +
+    "font-style font-variant font-weight height letter-spacing line-height margin margin-bottom margin-left margin-right " +
+    "margin-top max-height max-width min-height min-width padding padding-bottom padding-left padding-right " +
+    "padding-top text-align text-decoration text-indent text-transform vertical-align white-space width word-break"
+  ).split(/\s+/));
+
+  function safePasteStyle(styleText) {
+    var style = document.createElement("span").style;
+    style.cssText = styleText || "";
+    var declarations = [];
+    Array.prototype.forEach.call(style, function (property) {
+      var value = style.getPropertyValue(property).trim();
+      if (PASTE_CSS_PROPERTIES.has(property) && value &&
+          !/(?:url\s*\(|expression\s*\(|javascript:|@import|var\s*\(|[<>\\]|\/\*)/i.test(value)) {
+        declarations.push(property + ":" + value);
+      }
+    });
+    return declarations.join(";");
+  }
+
+  function pasteClassStyles(doc) {
+    var rules = {};
+    doc.querySelectorAll("style").forEach(function (styleNode) {
+      var css = styleNode.textContent.replace(/\/\*[\s\S]*?\*\//g, "").replace(/<!--|-->/g, "");
+      var pattern = /([^{}]+)\{([^{}]*)\}/g, match;
+      while ((match = pattern.exec(css))) {
+        var style = safePasteStyle(match[2]);
+        if (!style) continue;
+        match[1].split(",").forEach(function (selector) {
+          var classMatch = selector.trim().match(/^\.([A-Za-z_][\w-]*)$/);
+          if (!classMatch) return;
+          (rules[classMatch[1]] || (rules[classMatch[1]] = [])).push(style);
+        });
+      }
+    });
+    return rules;
+  }
+
+  function safePasteUrl(value, image) {
+    var url = value.trim();
+    if (image && /^data:image\/(?:png|gif|jpe?g|webp);base64,[a-z0-9+/=\s]+$/i.test(url) && url.length <= 1000000) {
+      return url;
+    }
+    return /^(?:https?:|mailto:)/i.test(url) ? url : "";
+  }
+
+  function cleanPasteNode(node, classStyles) {
+    if (node.nodeType === 3) return document.createTextNode(node.nodeValue);
+    if (node.nodeType !== 1) return null;
+
+    var tag = node.tagName.toLowerCase();
+    if (PASTE_DROP_TAGS.has(tag)) return null;
+    var children = Array.prototype.slice.call(node.childNodes);
+    if (!PASTE_HTML_TAGS.has(tag)) {
+      var fragment = document.createDocumentFragment();
+      children.forEach(function (child) {
+        var clean = cleanPasteNode(child, classStyles);
+        if (clean) fragment.appendChild(clean);
+      });
+      return fragment;
+    }
+
+    var cleanNode = document.createElement(tag);
+    var styles = [];
+    Array.prototype.forEach.call(node.classList, function (name) {
+      if (classStyles[name]) styles = styles.concat(classStyles[name]);
+    });
+    if (node.hasAttribute("style")) styles.push(node.getAttribute("style"));
+    var cleanStyle = safePasteStyle(styles.join(";"));
+    if (cleanStyle) cleanNode.setAttribute("style", cleanStyle);
+
+    Array.prototype.forEach.call(node.attributes, function (attr) {
+      var name = attr.name.toLowerCase(), value = attr.value.trim();
+      if (name === "style" || name === "class") return;
+      if (name === "href" && tag === "a") {
+        var href = safePasteUrl(value, false);
+        if (href) cleanNode.setAttribute("href", href);
+      } else if (name === "src" && tag === "img") {
+        var src = safePasteUrl(value, true);
+        if (src) cleanNode.setAttribute("src", src);
+      } else if (name === "alt" || name === "title") {
+        cleanNode.setAttribute(name, value);
+      } else if (/^(?:colspan|rowspan|span|start|width|height|cellpadding|cellspacing|border)$/.test(name) &&
+          /^\d{1,5}(?:\.\d+)?%?$/.test(value)) {
+        cleanNode.setAttribute(name, value);
+      } else if (name === "scope" && /^(?:row|col|rowgroup|colgroup)$/i.test(value)) {
+        cleanNode.setAttribute(name, value);
+      } else if ((name === "align" && /^(?:left|center|right|justify)$/i.test(value)) ||
+          (name === "valign" && /^(?:top|middle|bottom|baseline)$/i.test(value))) {
+        cleanNode.setAttribute(name, value);
+      } else if ((name === "color" || name === "bgcolor") &&
+          /^(?:#[0-9a-f]{3,8}|[a-z]{1,20})$/i.test(value)) {
+        cleanNode.setAttribute(name, value);
+      } else if (name === "face" && /^[\w ,'-]{1,120}$/.test(value)) {
+        cleanNode.setAttribute(name, value);
+      } else if (name === "size" && /^[1-7]$/.test(value)) {
+        cleanNode.setAttribute(name, value);
+      }
+    });
+
+    children.forEach(function (child) {
+      var clean = cleanPasteNode(child, classStyles);
+      if (clean) cleanNode.appendChild(clean);
+    });
+    return cleanNode;
+  }
+
+  function sanitizePastedHtml(html) {
+    var doc = new DOMParser().parseFromString(html, "text/html");
+    var styles = pasteClassStyles(doc);
+    var container = document.createElement("div");
+    Array.prototype.slice.call(doc.body.childNodes).forEach(function (node) {
+      var clean = cleanPasteNode(node, styles);
+      if (clean) container.appendChild(clean);
+    });
+    return container.innerHTML.trim();
+  }
+
+  function plainPasteContent(text) {
+    text = String(text || "").replace(/\r\n?/g, "\n").replace(/\n+$/, "");
+    if (text.indexOf("\t") < 0) return text;
+    var rows = text.split("\n");
+    return '<table style="' + PASTE_STYLES.table + '"><tbody>' + rows.map(function (row) {
+      return "<tr>" + row.split("\t").map(function (cell) {
+        return '<td style="' + PASTE_STYLES.td + '">' + escapeHtml(cell) + "</td>";
+      }).join("") + "</tr>";
+    }).join("") + "</tbody></table>";
+  }
+
+  function previewPasteOffset() {
+    var selection = window.getSelection();
+    var target = selection && preview.contains(selection.anchorNode) ? topBlock(selection.anchorNode) : null;
+    target = target || pasteBlock;
+    var blocks = Array.prototype.slice.call(preview.children);
+    var index = blocks.indexOf(target);
+    if (index >= 0) {
+      for (var i = index + 1; i < blocks.length; i++) {
+        if (blocks[i].hasAttribute("data-src")) return +blocks[i].getAttribute("data-src");
+      }
+    }
+    return editor.value.length;
+  }
+
+  function pasteIntoPreview(e) {
+    if (app.dataset.mode !== "view" || !e.clipboardData) return;
+    var active = document.activeElement;
+    if (e.target !== preview && e.target !== tabs.view &&
+        active !== preview && active !== tabs.view && active !== editor) return;
+
+    var html = e.clipboardData.getData("text/html");
+    var content = html ? sanitizePastedHtml(html) : "";
+    if (!content) content = plainPasteContent(e.clipboardData.getData("text/plain"));
+    if (!content) return;
+    e.preventDefault();
+
+    var source = editor.value;
+    var at = previewPasteOffset();
+    var before = source.slice(0, at), after = source.slice(at);
+    var prefix = before && !/\n{2}$/.test(before) ? "\n\n" : "";
+    var suffix = after && !/^\n{2}/.test(after) ? "\n\n" : "";
+    var insertion = prefix + content + suffix;
+    applyEdit(at, at, insertion, at + insertion.length, at + insertion.length);
+    pasteBlock = null;
+  }
+
+  preview.addEventListener("pointerdown", function (e) { pasteBlock = topBlock(e.target); });
+  document.addEventListener("paste", pasteIntoPreview);
+
   // A heading copies its whole section: until the next heading of the same or higher level
   function blockGroup(el) {
     var m = /^H([1-6])$/.exec(el.tagName);
