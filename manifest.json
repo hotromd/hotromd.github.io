@@ -1,0 +1,20 @@
+{
+  "name": "MD Helper - Read and write Markdown in your browser",
+  "short_name": "MD Helper",
+  "description": "Read, write, manage and export Markdown right in your browser. Live preview, outline, Mermaid diagrams, KaTeX math, GitHub alerts, folders, search, export to Word/PDF/HTML/ZIP.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d1117",
+  "theme_color": "#0969da",
+  "lang": "en",
+  "categories": ["productivity", "utilities", "education"],
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
