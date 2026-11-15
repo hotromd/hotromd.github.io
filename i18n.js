@@ -30,6 +30,7 @@
     "<dt><kbd>Ctrl</kbd> <kbd>I</kbd></dt><dd>Italic</dd>" +
     "<dt><kbd>Ctrl</kbd> <kbd>K</kbd></dt><dd>Insert link</dd>" +
     "<dt><kbd>Ctrl</kbd> <kbd>E</kbd></dt><dd>Inline code</dd>" +
+    "<dt><kbd>Ctrl</kbd> <kbd>F</kbd> / <kbd>Ctrl</kbd> <kbd>H</kbd></dt><dd>Find / Replace in document</dd>" +
     "<dt><kbd>Tab</kbd> / <kbd>Shift</kbd> <kbd>Tab</kbd></dt><dd>Indent / outdent</dd>" +
     "<dt><kbd>Enter</kbd></dt><dd>Continue the current list</dd>" +
     "<dt><kbd>Esc</kbd> then <kbd>Tab</kbd></dt><dd>Leave the editor with the keyboard</dd>" +
@@ -37,15 +38,18 @@
     "<h3>Tips</h3><ul class=\"tips\">" +
     "<li>Drop one or more <code>.md</code> files onto the window to open them.</li>" +
     "<li>Click a checkbox in the preview to tick a task; the Markdown updates itself.</li>" +
-    "<li>Pin documents you use often to keep them at the top of the list.</li>" +
+    "<li>Use <code>&gt; [!NOTE]</code>, <code>&gt; [!TIP]</code>, <code>&gt; [!IMPORTANT]</code>, <code>&gt; [!WARNING]</code>, or <code>&gt; [!CAUTION]</code> for GitHub-style alert callouts.</li>" +
+    "<li>Write LaTeX math with <code>$inline$</code> or <code>$$block$$</code> formulas (rendered with KaTeX).</li>" +
+    "<li>Select text and paste a URL to turn it into a link, or paste cells from Excel/Sheets to create a Markdown table automatically.</li>" +
+    "<li>Pin documents you use often to keep them at the top of the list, or sort by date, title, or length.</li>" +
     "<li>Drag a document onto a folder to file it; drop it on empty space to take it out. Drop <code>.md</code> files on a folder to open them straight into it.</li>" +
     "<li>Double-click a folder name to rename it.</li>" +
     "<li>Hover the preview: a copy button appears left of each block (paragraph, table, list, code…) to copy it with formatting. The button on a heading copies the whole section.</li>" +
     "<li>Code blocks with a language (<code>```js</code>, <code>```java</code>, <code>```sql</code>…) are highlighted. <code>```mermaid</code> blocks are drawn as diagrams and become images when exported to Word or copied.</li>" +
     "<li>Drag the right edge of the document list to widen it and read long titles. Double-click the edge to reset.</li>" +
     "<li>Search ignores accents, so plain letters also find accented text (e.g. <i>tieng viet</i> finds <i>tiếng Việt</i>).</li>" +
-    "<li>Deleted by mistake? Click <b>Undo</b> in the notification right away.</li>" +
-    "<li>Data is stored only in this browser. Use <b>Back up</b> (the ⋮ button below the list) to keep a safe copy.</li>" +
+    "<li>Deleted documents are kept in the <b>Trash</b> at the bottom of the list so you can restore them anytime.</li>" +
+    "<li>Data is stored only in this browser. Use <b>Back up</b> or <b>Export all as Markdown (.zip)</b> (the ⋮ button below the list) to keep a safe copy.</li>" +
     "</ul>" +
     "<h3>About</h3><p class=\"about\"><b>MD Helper</b> (<a href=\"https://hotromd.github.io/\">hotromd.github.io</a>) is a product of " +
     "<a href=\"https://hotroso.github.io/\" target=\"_blank\" rel=\"noopener\">Hỗ Trợ Giải Pháp Số</a> (hotroso.github.io). " +
@@ -71,6 +75,7 @@
     "<dt><kbd>Ctrl</kbd> <kbd>I</kbd></dt><dd>Nghiêng</dd>" +
     "<dt><kbd>Ctrl</kbd> <kbd>K</kbd></dt><dd>Chèn liên kết</dd>" +
     "<dt><kbd>Ctrl</kbd> <kbd>E</kbd></dt><dd>Code trong dòng</dd>" +
+    "<dt><kbd>Ctrl</kbd> <kbd>F</kbd> / <kbd>Ctrl</kbd> <kbd>H</kbd></dt><dd>Tìm / Thay thế trong tài liệu</dd>" +
     "<dt><kbd>Tab</kbd> / <kbd>Shift</kbd> <kbd>Tab</kbd></dt><dd>Thụt / bỏ thụt dòng</dd>" +
     "<dt><kbd>Enter</kbd></dt><dd>Tự tiếp tục danh sách</dd>" +
     "<dt><kbd>Esc</kbd> rồi <kbd>Tab</kbd></dt><dd>Rời ô soạn thảo bằng bàn phím</dd>" +
@@ -78,15 +83,18 @@
     "<h3>Mẹo</h3><ul class=\"tips\">" +
     "<li>Kéo thả một hoặc nhiều file <code>.md</code> vào cửa sổ để mở.</li>" +
     "<li>Nhấp ô checkbox trong bản xem để đánh dấu việc đã xong, nội dung markdown tự cập nhật.</li>" +
-    "<li>Ghim tài liệu hay dùng để luôn nằm đầu danh sách.</li>" +
+    "<li>Dùng <code>&gt; [!NOTE]</code>, <code>&gt; [!TIP]</code>, <code>&gt; [!IMPORTANT]</code>, <code>&gt; [!WARNING]</code>, hoặc <code>&gt; [!CAUTION]</code> để tạo khung thông báo chuẩn GitHub.</li>" +
+    "<li>Viết công thức toán học LaTeX bằng <code>$inline$</code> hoặc <code>$$block$$</code> (hiển thị với KaTeX).</li>" +
+    "<li>Bôi đen văn bản rồi dán URL để tự tạo liên kết, hoặc dán bảng từ Excel/Google Sheets để tự chuyển thành bảng Markdown.</li>" +
+    "<li>Ghim tài liệu hay dùng để luôn nằm đầu danh sách, hoặc sắp xếp theo thời gian, tên A→Z, độ dài.</li>" +
     "<li>Kéo một tài liệu thả vào thư mục để sắp xếp; thả ra vùng trống để đưa ra ngoài thư mục. Thả file <code>.md</code> lên thư mục để mở thẳng vào đó.</li>" +
     "<li>Nhấp đúp tên thư mục để đổi tên.</li>" +
     "<li>Rê chuột lên bản xem: nút sao chép hiện ở lề trái mỗi khối (đoạn văn, bảng, danh sách, code…) để chép có định dạng. Nút trên heading chép cả mục đó.</li>" +
     "<li>Khối code ghi ngôn ngữ (<code>```js</code>, <code>```java</code>, <code>```sql</code>…) được tô màu. Khối <code>```mermaid</code> được vẽ thành sơ đồ; khi xuất Word hoặc sao chép, sơ đồ được chuyển thành ảnh.</li>" +
     "<li>Kéo mép phải của danh sách tài liệu để nới rộng, xem được tiêu đề dài. Nhấp đúp mép để về độ rộng mặc định.</li>" +
     "<li>Tìm kiếm hỗ trợ gõ không dấu: <i>tieng viet</i> tìm được <i>tiếng Việt</i>.</li>" +
-    "<li>Xoá nhầm? Bấm <b>Hoàn tác</b> trên thông báo ngay sau khi xoá.</li>" +
-    "<li>Dữ liệu chỉ lưu trong trình duyệt này. Dùng <b>Sao lưu</b> (nút ⋮ cuối danh sách) để giữ bản an toàn.</li>" +
+    "<li>Tài liệu đã xoá được lưu trong mục <b>Thùng rác</b> ở cuối danh sách để bạn khôi phục bất cứ lúc nào.</li>" +
+    "<li>Dữ liệu chỉ lưu trong trình duyệt này. Dùng <b>Sao lưu</b> hoặc <b>Xuất tất cả file .md (.zip)</b> (nút ⋮ cuối danh sách) để giữ bản an toàn.</li>" +
     "</ul>" +
     "<h3>Giới thiệu</h3><p class=\"about\"><b>MD Helper</b> (<a href=\"https://hotromd.github.io/\">hotromd.github.io</a>) là một sản phẩm của " +
     "<a href=\"https://hotroso.github.io/\" target=\"_blank\" rel=\"noopener\">Hỗ Trợ Giải Pháp Số</a> (hotroso.github.io). " +
@@ -105,6 +113,8 @@
     "- [x] Search every document from the top bar (press `/`)\n" +
     "- [x] Drop `.md` files onto the window to open them\n" +
     "- [ ] Click this box in the preview to tick it\n\n" +
+    "> [!TIP]\n" +
+    "> Use `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, or `[!CAUTION]` for callout blocks, and `$E = mc^2$` for LaTeX math!\n\n" +
     "## Diagrams\n\n" +
     "```mermaid\nflowchart LR\n  A[Write Markdown] --> B[Preview]\n  B --> C{Share}\n  C --> D[Word / PDF / HTML]\n  C --> E[Copy with formatting]\n```\n\n" +
     "## Export\n\n" +
@@ -124,6 +134,8 @@
     "- [x] Tìm trong mọi tài liệu ở thanh trên (nhấn `/`), gõ không dấu được\n" +
     "- [x] Kéo thả file `.md` vào cửa sổ để mở\n" +
     "- [ ] Nhấp vào ô này trong bản xem để đánh dấu xong\n\n" +
+    "> [!TIP]\n" +
+    "> Dùng `[!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, hoặc `[!CAUTION]` để tạo khung lưu ý, và `$E = mc^2$` cho công thức toán học!\n\n" +
     "## Sơ đồ\n\n" +
     "```mermaid\nflowchart LR\n  A[Viết Markdown] --> B[Xem trước]\n  B --> C{Chia sẻ}\n  C --> D[Word / PDF / HTML]\n  C --> E[Sao chép có định dạng]\n```\n\n" +
     "## Xuất file\n\n" +
@@ -286,7 +298,50 @@
       "file.into": " into \"{folder}\"",
       "file.skipped": function (v) { return " (skipped " + plural(v.n, "unsupported file", "unsupported files") + ")"; },
       "file.readFail": "Could not read the file",
-      "toast.close": "Dismiss notification"
+      "toast.close": "Dismiss notification",
+      "export.zip": "All documents",
+      "export.zipAll": "Export all as Markdown",
+      "zip.done": function (v) { return "Exported " + plural(v.n, "document", "documents") + " (.zip)"; },
+      "tb.alert": "Alert callout [!NOTE] → [!TIP] → [!IMPORTANT]… (press repeatedly)",
+      "tb.math": "Math formula ($…$ or $$…$$)",
+      "tb.find": "Find & replace in document (Ctrl+F / Ctrl+H)",
+      "alert.note": "Note", "alert.tip": "Tip", "alert.important": "Important", "alert.warning": "Warning", "alert.caution": "Caution",
+      "fr.aria": "Find and replace",
+      "fr.findPlaceholder": "Find in document…",
+      "fr.replacePlaceholder": "Replace with…",
+      "fr.caseTitle": "Match exact case & accents",
+      "fr.prev": "Previous match (Shift+Enter)",
+      "fr.next": "Next match (Enter)",
+      "fr.replace": "Replace",
+      "fr.replaceTitle": "Replace current match",
+      "fr.replaceAll": "All",
+      "fr.replaceAllTitle": "Replace all matches",
+      "fr.replaced": function (v) { return "Replaced " + plural(v.n, "occurrence", "occurrences"); },
+      "sort.title": "Sort documents",
+      "sort.heading": "Sort by",
+      "sort.updated": "Recently updated",
+      "sort.name": "Title (A → Z)",
+      "sort.length": "Length",
+      "trash.heading": "Trash",
+      "trash.restore": "Restore document",
+      "trash.deletePerm": "Delete permanently",
+      "trash.restored": "Restored \"{title}\"",
+      "trash.deletedPerm": "Permanently deleted \"{title}\"",
+      "trash.emptyAction": "Empty trash",
+      "trash.emptied": "Trash emptied",
+      "tpl.title": "New from template…",
+      "tpl.heading": "New from template",
+      "tpl.meeting": "Meeting notes",
+      "tpl.readme": "Project README",
+      "tpl.spec": "Technical spec & alerts",
+      "tpl.tasks": "Task tracker",
+      "tpl.math": "Math & diagrams",
+      "tpl.created": "Created from template \"{name}\"",
+      "tpl.content.meeting": "# Meeting Notes\n\n- **Date:** {date}\n- **Participants:** @team\n- **Goal:** Weekly sync & decisions\n\n## Agenda\n\n1. Review last week's progress\n2. Key blockers & solutions\n3. Next steps\n\n## Discussion Notes\n\n> [!NOTE]\n> Key decision: prioritize offline support and fast search.\n\n| Topic | Owner | Status |\n| --- | --- | --- |\n| UI Polish | Alice | Done |\n| Export Engine | Bob | In Progress |\n\n## Action Items\n\n- [ ] Share updated roadmap\n- [ ] Finalize release checklist\n",
+      "tpl.content.readme": "# Project Name\n\nA concise description of what this project does and who it is for.\n\n> [!TIP]\n> Built for speed, privacy, and simplicity.\n\n## Features\n\n- Fast live preview with synchronized scrolling\n- Diagrams with **Mermaid** and math with **KaTeX**\n- Export to HTML, Word, PDF, or ZIP\n\n## Quick Start\n\n```bash\ngit clone https://github.com/username/project.git\ncd project\n```\n\n## Architecture\n\n```mermaid\nflowchart LR\n  User[User Browser] --> App[Web App]\n  App --> Store[(LocalStorage)]\n  App --> Export[HTML / Word / PDF]\n```\n\n## License\n\nMIT © {year}\n",
+      "tpl.content.spec": "# Technical Specification: Feature X\n\n## 1. Overview\n\nSummarize the problem statement and proposed solution.\n\n> [!IMPORTANT]\n> All data must remain client-side with zero external server dependencies.\n\n## 2. System Flow\n\n```mermaid\nsequenceDiagram\n  participant U as User\n  participant E as Editor\n  participant P as Preview\n  U->>E: Type Markdown\n  E->>P: Render AST + Diagrams + Math\n```\n\n## 3. Risks & Mitigations\n\n> [!WARNING]\n> Large documents may increase render time; debounce updates to 150ms.\n\n> [!CAUTION]\n> Clearing browser site data will erase local storage unless backed up.\n",
+      "tpl.content.tasks": "# Task Tracker\n\n## High Priority\n\n- [ ] Complete core feature implementation\n- [ ] Verify dark mode contrast and accessibility\n\n## In Progress\n\n- [x] Set up document folder structure\n- [ ] Write user documentation\n\n## Backlog\n\n| Task | Priority | Estimate |\n| --- | --- | --- |\n| Offline PWA caching | High | 2h |\n| Template library | Medium | 1h |\n",
+      "tpl.content.math": "# Math & Diagrams Showcase\n\n## 1. LaTeX Math (KaTeX)\n\nInline formula: Euler's identity $e^{i\\pi} + 1 = 0$ and the quadratic formula $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$.\n\nDisplay equation (Gaussian integral):\n\n$$\n\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}\n$$\n\nMatrix & summation:\n\n$$\n\\sum_{k=1}^{n} k^2 = \\frac{n(n+1)(2n+1)}{6}\n$$\n\n## 2. Mermaid State Diagram\n\n```mermaid\nstateDiagram-v2\n  [*] --> Draft\n  Draft --> Review : Submit\n  Review --> Published : Approve\n  Review --> Draft : Request changes\n```\n"
     },
 
     vi: {
@@ -443,7 +498,50 @@
       "file.into": " vào \"{folder}\"",
       "file.skipped": " (bỏ qua {n} file không hỗ trợ)",
       "file.readFail": "Không đọc được file",
-      "toast.close": "Đóng thông báo"
+      "toast.close": "Đóng thông báo",
+      "export.zip": "Tất cả tài liệu",
+      "export.zipAll": "Xuất tất cả file .md",
+      "zip.done": "Đã xuất {n} tài liệu (.zip)",
+      "tb.alert": "Khung thông báo [!NOTE] → [!TIP] → [!IMPORTANT]… (nhấn nhiều lần)",
+      "tb.math": "Công thức toán học ($…$ hoặc $$…$$)",
+      "tb.find": "Tìm & thay thế trong tài liệu (Ctrl+F / Ctrl+H)",
+      "alert.note": "Ghi chú", "alert.tip": "Mẹo", "alert.important": "Quan trọng", "alert.warning": "Cảnh báo", "alert.caution": "Thận trọng",
+      "fr.aria": "Tìm và thay thế",
+      "fr.findPlaceholder": "Tìm trong tài liệu…",
+      "fr.replacePlaceholder": "Thay thế bằng…",
+      "fr.caseTitle": "Phân biệt chữ hoa/thường & dấu",
+      "fr.prev": "Kết quả trước (Shift+Enter)",
+      "fr.next": "Kết quả tiếp theo (Enter)",
+      "fr.replace": "Thay thế",
+      "fr.replaceTitle": "Thay thế kết quả hiện tại",
+      "fr.replaceAll": "Tất cả",
+      "fr.replaceAllTitle": "Thay thế tất cả kết quả",
+      "fr.replaced": "Đã thay thế {n} vị trí",
+      "sort.title": "Sắp xếp tài liệu",
+      "sort.heading": "Sắp xếp theo",
+      "sort.updated": "Mới cập nhật",
+      "sort.name": "Tiêu đề (A → Z)",
+      "sort.length": "Độ dài nội dung",
+      "trash.heading": "Thùng rác",
+      "trash.restore": "Khôi phục tài liệu",
+      "trash.deletePerm": "Xoá vĩnh viễn",
+      "trash.restored": "Đã khôi phục \"{title}\"",
+      "trash.deletedPerm": "Đã xoá vĩnh viễn \"{title}\"",
+      "trash.emptyAction": "Dọn sạch thùng rác",
+      "trash.emptied": "Đã dọn sạch thùng rác",
+      "tpl.title": "Tạo từ mẫu…",
+      "tpl.heading": "Tạo từ mẫu có sẵn",
+      "tpl.meeting": "Biên bản cuộc họp",
+      "tpl.readme": "README dự án",
+      "tpl.spec": "Tài liệu kỹ thuật & lưu ý",
+      "tpl.tasks": "Quản lý công việc",
+      "tpl.math": "Toán học & sơ đồ",
+      "tpl.created": "Đã tạo từ mẫu \"{name}\"",
+      "tpl.content.meeting": "# Biên bản cuộc họp\n\n- **Ngày:** {date}\n- **Thành viên:** @nhom\n- **Mục tiêu:** Họp định kỳ & chốt phương án\n\n## Nội dung chính\n\n1. Điểm lại tiến độ tuần qua\n2. Các vướng mắc & hướng xử lý\n3. Kế hoạch tiếp theo\n\n## Ghi chú thảo luận\n\n> [!NOTE]\n> Quyết định quan trọng: ưu tiên trải nghiệm offline và tốc độ tìm kiếm.\n\n| Hạng mục | Phụ trách | Trạng thái |\n| --- | --- | --- |\n| Giao diện | An | Hoàn thành |\n| Xuất tài liệu | Bình | Đang làm |\n\n## Việc cần làm\n\n- [ ] Gửi lộ trình cập nhật cho nhóm\n- [ ] Chốt danh sách kiểm tra trước khi phát hành\n",
+      "tpl.content.readme": "# Tên Dự Án\n\nMô tả ngắn gọn về mục đích của dự án và đối tượng sử dụng.\n\n> [!TIP]\n> Thiết kế gọn nhẹ, nhanh chóng và bảo mật dữ liệu.\n\n## Tính năng nổi bật\n\n- Xem trước trực tiếp kèm cuộn đồng bộ mượt mà\n- Hỗ trợ vẽ sơ đồ **Mermaid** và công thức toán **KaTeX**\n- Xuất ra HTML, Word, PDF hoặc gói ZIP\n\n## Cài đặt nhanh\n\n```bash\ngit clone https://github.com/username/project.git\ncd project\n```\n\n## Kiến trúc\n\n```mermaid\nflowchart LR\n  User[Trình duyệt] --> App[Ứng dụng Web]\n  App --> Store[(LocalStorage)]\n  App --> Export[HTML / Word / PDF]\n```\n\n## Giấy phép\n\nMIT © {year}\n",
+      "tpl.content.spec": "# Đặc tả Kỹ thuật: Tính năng X\n\n## 1. Tổng quan\n\nTóm tắt bài toán cần giải quyết và giải pháp đề xuất.\n\n> [!IMPORTANT]\n> Toàn bộ dữ liệu phải được xử lý tại trình duyệt, không phụ thuộc máy chủ ngoài.\n\n## 2. Luồng hoạt động\n\n```mermaid\nsequenceDiagram\n  participant U as Người dùng\n  participant E as Trình soạn thảo\n  participant P as Bản xem trước\n  U->>E: Gõ Markdown\n  E->>P: Hiển thị HTML + Sơ đồ + Toán học\n```\n\n## 3. Rủi ro & Giải pháp\n\n> [!WARNING]\n> Tài liệu quá dài có thể gây trễ khi vẽ lại; cần debounce ở mức 150ms.\n\n> [!CAUTION]\n> Xoá dữ liệu duyệt web sẽ làm mất dữ liệu cục bộ nếu chưa sao lưu.\n",
+      "tpl.content.tasks": "# Quản lý Công việc\n\n## Ưu tiên cao\n\n- [ ] Hoàn thiện các tính năng cốt lõi\n- [ ] Kiểm tra độ tương phản giao diện tối (Dark mode)\n\n## Đang thực hiện\n\n- [x] Tổ chức cấu trúc thư mục tài liệu\n- [ ] Viết hướng dẫn sử dụng\n\n## Dự kiến (Backlog)\n\n| Công việc | Độ ưu tiên | Ước lượng |\n| --- | --- | --- |\n| Bộ nhớ đệm Offline PWA | Cao | 2h |\n| Thư viện mẫu tài liệu | Trung bình | 1h |\n",
+      "tpl.content.math": "# Công thức Toán học & Sơ đồ\n\n## 1. Toán học LaTeX (KaTeX)\n\nCông thức trong dòng: Đồng nhất thức Euler $e^{i\\pi} + 1 = 0$ và nghiệm phương trình bậc hai $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$.\n\nCông thức khối (Tích phân Gauss):\n\n$$\n\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}\n$$\n\nTổng chuỗi:\n\n$$\n\\sum_{k=1}^{n} k^2 = \\frac{n(n+1)(2n+1)}{6}\n$$\n\n## 2. Sơ đồ trạng thái Mermaid\n\n```mermaid\nstateDiagram-v2\n  [*] --> BanNhap\n  BanNhap --> Duyet : Gửi duyệt\n  Duyet --> XuatBan : Phê duyệt\n  Duyet --> BanNhap : Yêu cầu sửa\n```\n"
     }
   };
 

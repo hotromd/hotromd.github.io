@@ -33,6 +33,7 @@
 <meta property="og:locale" content="en_US">
 <meta property="og:locale:alternate" content="vi_VN">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
 <script>
   // Apply theme before first paint to avoid a light flash in dark mode
   try {
@@ -88,6 +89,13 @@
   <symbol id="i-folder-plus" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2zM12 10v6M9 13h6"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></symbol>
   <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-chevron-up" viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></symbol>
+  <symbol id="i-template" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></symbol>
+  <symbol id="i-sort" viewBox="0 0 24 24"><path d="M11 5h10M11 9h7M11 13h4M3 17l3 3 3-3M6 18V4"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></symbol>
+  <symbol id="i-math" viewBox="0 0 24 24"><path d="M18 4H6l6 8-6 8h12"/></symbol>
+  <symbol id="i-restore" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="5" rx="1"/><path d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9M10 13h4"/></symbol>
 </svg>
 
 <header class="bar">
@@ -130,6 +138,7 @@
         <button role="menuitem" data-action="export-html"><span data-i18n="export.html">Web page</span> <small>.html</small></button>
         <button role="menuitem" data-action="export-doc">Word <small>.doc</small></button>
         <button role="menuitem" data-action="export-pdf">PDF <small>Ctrl+P</small></button>
+        <button role="menuitem" data-action="export-zip"><span data-i18n="export.zip">All documents</span> <small>.zip</small></button>
         <div class="menu-sep" role="separator"></div>
         <button role="menuitem" data-action="copy-rich"><span data-i18n="export.copyRich">Copy with formatting</span> <small data-i18n="export.copyRichHint">paste into Word, email…</small></button>
         <button role="menuitem" data-action="copy-md"><span data-i18n="export.copyMd">Copy Markdown</span></button>
@@ -155,14 +164,42 @@
         <button id="btn-new" class="btn btn-primary btn-block" data-i18n-title="new.title" title="New document (Alt+N)">
           <svg class="i"><use href="#i-plus"/></svg><span data-i18n="new.label">New document</span>
         </button>
-        <button id="btn-new-folder" class="btn" data-i18n-title="newFolder" data-i18n-aria="newFolder" title="New folder" aria-label="New folder">
+        <div class="menu-wrap">
+          <button id="btn-templates" class="btn icon-only" data-i18n-title="tpl.title" data-i18n-aria="tpl.title"
+            title="New from template…" aria-label="New from template…" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-templates">
+            <svg class="i"><use href="#i-template"/></svg>
+          </button>
+          <div id="menu-templates" class="menu menu-left" role="menu" hidden>
+            <div class="menu-label" data-i18n="tpl.heading">New from template</div>
+            <button role="menuitem" data-action="tpl-meeting"><span data-i18n="tpl.meeting">Meeting notes</span></button>
+            <button role="menuitem" data-action="tpl-readme"><span data-i18n="tpl.readme">Project README</span></button>
+            <button role="menuitem" data-action="tpl-spec"><span data-i18n="tpl.spec">Technical spec &amp; alerts</span></button>
+            <button role="menuitem" data-action="tpl-tasks"><span data-i18n="tpl.tasks">Task tracker</span></button>
+            <button role="menuitem" data-action="tpl-math"><span data-i18n="tpl.math">Math &amp; diagrams</span></button>
+          </div>
+        </div>
+        <button id="btn-new-folder" class="btn icon-only" data-i18n-title="newFolder" data-i18n-aria="newFolder" title="New folder" aria-label="New folder">
           <svg class="i"><use href="#i-folder-plus"/></svg>
         </button>
       </div>
-      <div class="search">
-        <svg class="i"><use href="#i-search"/></svg>
-        <input id="search" type="search" data-i18n-placeholder="filter.placeholder" data-i18n-aria="filter.aria"
-          placeholder="Filter list…" aria-label="Filter document list">
+      <div class="search-row">
+        <div class="search">
+          <svg class="i"><use href="#i-search"/></svg>
+          <input id="search" type="search" data-i18n-placeholder="filter.placeholder" data-i18n-aria="filter.aria"
+            placeholder="Filter list…" aria-label="Filter document list">
+        </div>
+        <div class="menu-wrap">
+          <button id="btn-sort" class="btn icon-only" data-i18n-title="sort.title" data-i18n-aria="sort.title"
+            title="Sort documents" aria-label="Sort documents" aria-haspopup="menu" aria-expanded="false" aria-controls="menu-sort">
+            <svg class="i"><use href="#i-sort"/></svg>
+          </button>
+          <div id="menu-sort" class="menu" role="menu" hidden>
+            <div class="menu-label" data-i18n="sort.heading">Sort by</div>
+            <button role="menuitemradio" data-action="sort-updated" aria-checked="true"><span data-i18n="sort.updated">Recently updated</span></button>
+            <button role="menuitemradio" data-action="sort-title" aria-checked="false"><span data-i18n="sort.name">Title (A → Z)</span></button>
+            <button role="menuitemradio" data-action="sort-length" aria-checked="false"><span data-i18n="sort.length">Length</span></button>
+          </div>
+        </div>
       </div>
     </div>
     <ul id="doc-list" class="doc-list"></ul>
@@ -175,8 +212,12 @@
           <svg class="i"><use href="#i-dots"/></svg>
         </button>
         <div id="menu-more" class="menu menu-up" role="menu" hidden>
+          <button role="menuitem" data-action="export-zip"><span data-i18n="export.zipAll">Export all as Markdown</span> <small>.zip</small></button>
+          <div class="menu-sep" role="separator"></div>
           <button role="menuitem" data-action="backup"><span data-i18n="backup">Back up all documents</span> <small>.json</small></button>
           <button role="menuitem" data-action="restore"><span data-i18n="restore">Restore from backup…</span></button>
+          <div id="sep-trash" class="menu-sep" role="separator" hidden></div>
+          <button id="btn-empty-trash" role="menuitem" data-action="empty-trash" class="menu-danger" hidden><span data-i18n="trash.emptyAction">Empty trash</span></button>
         </div>
       </div>
       <input id="backup-input" type="file" accept=".json,application/json" hidden>
@@ -214,11 +255,15 @@
       <button data-cmd="image" data-i18n-title="tb.image" title="Image"><svg class="i"><use href="#i-image"/></svg></button>
       <span class="tb-sep"></span>
       <button data-cmd="quote" data-i18n-title="tb.quote" title="Quote"><svg class="i"><use href="#i-quote"/></svg></button>
+      <button data-cmd="alert" data-i18n-title="tb.alert" title="Alert callout [!NOTE] → [!TIP] → [!IMPORTANT]…"><svg class="i"><use href="#i-alert"/></svg></button>
       <button data-cmd="ul" data-i18n-title="tb.ul" title="Bulleted list"><svg class="i"><use href="#i-ul"/></svg></button>
       <button data-cmd="ol" data-i18n-title="tb.ol" title="Numbered list"><svg class="i"><use href="#i-ol"/></svg></button>
       <button data-cmd="task" data-i18n-title="tb.task" title="Task list"><svg class="i"><use href="#i-task"/></svg></button>
       <button data-cmd="table" data-i18n-title="tb.table" title="Insert table"><svg class="i"><use href="#i-table"/></svg></button>
+      <button data-cmd="math" data-i18n-title="tb.math" title="Math formula ($…$ / $$…$$)"><svg class="i"><use href="#i-math"/></svg></button>
       <button data-cmd="hr" data-i18n-title="tb.hr" title="Horizontal rule"><svg class="i"><use href="#i-hr"/></svg></button>
+      <span class="tb-sep"></span>
+      <button data-cmd="find" data-i18n-title="tb.find" title="Find &amp; replace in document (Ctrl+F / Ctrl+H)"><svg class="i"><use href="#i-search"/></svg></button>
       <span class="tb-spacer"></span>
       <button id="btn-sync" class="tb-toggle" aria-pressed="true" data-i18n-title="sync.title" title="Sync scrolling between editor and preview">
         <svg class="i"><use href="#i-sync"/></svg><span class="lbl" data-i18n="sync.label">Sync scroll</span>
@@ -228,6 +273,33 @@
     <div class="content">
       <main id="app" data-mode="split">
         <section class="pane pane-edit">
+          <div id="find-bar" class="find-bar" role="search" data-i18n-aria="fr.aria" aria-label="Find and replace" hidden>
+            <div class="fr-row">
+              <div class="fr-input-wrap">
+                <input id="fr-find" type="text" autocomplete="off" spellcheck="false"
+                  data-i18n-placeholder="fr.findPlaceholder" data-i18n-aria="fr.findPlaceholder"
+                  placeholder="Find in document…">
+                <span id="fr-count" class="fr-count"></span>
+              </div>
+              <button id="fr-case" type="button" class="btn btn-small fr-toggle" aria-pressed="false"
+                data-i18n-title="fr.caseTitle" title="Match exact case &amp; accents">Aa</button>
+              <button id="fr-prev" type="button" class="icon-btn icon-btn-sm" data-i18n-title="fr.prev" data-i18n-aria="fr.prev"
+                title="Previous match (Shift+Enter)" aria-label="Previous match"><svg class="i"><use href="#i-chevron-up"/></svg></button>
+              <button id="fr-next" type="button" class="icon-btn icon-btn-sm" data-i18n-title="fr.next" data-i18n-aria="fr.next"
+                title="Next match (Enter)" aria-label="Next match"><svg class="i"><use href="#i-chevron"/></svg></button>
+              <button id="fr-close" type="button" class="icon-btn icon-btn-sm" data-i18n-title="close" data-i18n-aria="close"
+                title="Close (Esc)" aria-label="Close"><svg class="i"><use href="#i-x"/></svg></button>
+            </div>
+            <div class="fr-row">
+              <div class="fr-input-wrap">
+                <input id="fr-replace" type="text" autocomplete="off" spellcheck="false"
+                  data-i18n-placeholder="fr.replacePlaceholder" data-i18n-aria="fr.replacePlaceholder"
+                  placeholder="Replace with…">
+              </div>
+              <button id="fr-replace-one" type="button" class="btn btn-small" data-i18n="fr.replace" data-i18n-title="fr.replaceTitle" title="Replace current match">Replace</button>
+              <button id="fr-replace-all" type="button" class="btn btn-small" data-i18n="fr.replaceAll" data-i18n-title="fr.replaceAllTitle" title="Replace all matches">All</button>
+            </div>
+          </div>
           <label for="editor" class="sr-only" data-i18n="editor.label">Markdown content</label>
           <textarea id="editor" spellcheck="false" data-i18n-placeholder="editor.placeholder"
             placeholder="Paste or type Markdown here… (drop .md files onto the window to open them)"></textarea>
