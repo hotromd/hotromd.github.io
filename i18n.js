@@ -22,7 +22,7 @@
     "<dt><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd></dt><dd>Pick a result and jump to it</dd>" +
     "<dt><kbd>Tab</kbd> (in search)</dt><dd>Complete the suggested word</dd>" +
     "<dt><kbd>Ctrl</kbd> <kbd>\\</kbd></dt><dd>Show/hide document list</dd>" +
-    "<dt><kbd>Alt</kbd> <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dt><dd>Edit / Split / Preview</dd>" +
+    "<dt><kbd>Alt</kbd> <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></dt><dd>Edit / Split / Preview / Pro</dd>" +
     "<dt><kbd>Ctrl</kbd> <kbd>/</kbd></dt><dd>Open this panel</dd>" +
     "</dl></section>" +
     "<section><h3>Editing</h3><dl class=\"keys\">" +
@@ -38,6 +38,7 @@
     "<h3>Tips</h3><ul class=\"tips\">" +
     "<li>Drop one or more <code>.md</code> files onto the window to open them.</li>" +
     "<li>Click a checkbox in the preview to tick a task; the Markdown updates itself.</li>" +
+    "<li>Use Pro mode to edit the rendered document directly with rich-text tools.</li>" +
     "<li>Use <code>&gt; [!NOTE]</code>, <code>&gt; [!TIP]</code>, <code>&gt; [!IMPORTANT]</code>, <code>&gt; [!WARNING]</code>, or <code>&gt; [!CAUTION]</code> for GitHub-style alert callouts.</li>" +
     "<li>Write LaTeX math with <code>$inline$</code> or <code>$$block$$</code> formulas (rendered with KaTeX).</li>" +
     "<li>Select text and paste a URL to turn it into a link, or paste cells from Excel/Sheets to create a Markdown table automatically.</li>" +
@@ -67,7 +68,7 @@
     "<dt><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd></dt><dd>Chọn và nhảy tới kết quả</dd>" +
     "<dt><kbd>Tab</kbd> (trong ô tìm)</dt><dd>Hoàn tất từ gợi ý (có dấu)</dd>" +
     "<dt><kbd>Ctrl</kbd> <kbd>\\</kbd></dt><dd>Ẩn/hiện danh sách</dd>" +
-    "<dt><kbd>Alt</kbd> <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dt><dd>Soạn thảo / Song song / Xem</dd>" +
+    "<dt><kbd>Alt</kbd> <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></dt><dd>Soạn thảo / Song song / Xem / Chuyên nghiệp</dd>" +
     "<dt><kbd>Ctrl</kbd> <kbd>/</kbd></dt><dd>Mở bảng này</dd>" +
     "</dl></section>" +
     "<section><h3>Soạn thảo</h3><dl class=\"keys\">" +
@@ -83,6 +84,7 @@
     "<h3>Mẹo</h3><ul class=\"tips\">" +
     "<li>Kéo thả một hoặc nhiều file <code>.md</code> vào cửa sổ để mở.</li>" +
     "<li>Nhấp ô checkbox trong bản xem để đánh dấu việc đã xong, nội dung markdown tự cập nhật.</li>" +
+    "<li>Dùng chế độ Chuyên nghiệp để sửa trực tiếp nội dung đã hiển thị bằng các công cụ định dạng.</li>" +
     "<li>Dùng <code>&gt; [!NOTE]</code>, <code>&gt; [!TIP]</code>, <code>&gt; [!IMPORTANT]</code>, <code>&gt; [!WARNING]</code>, hoặc <code>&gt; [!CAUTION]</code> để tạo khung thông báo chuẩn GitHub.</li>" +
     "<li>Viết công thức toán học LaTeX bằng <code>$inline$</code> hoặc <code>$$block$$</code> (hiển thị với KaTeX).</li>" +
     "<li>Bôi đen văn bản rồi dán URL để tự tạo liên kết, hoặc dán bảng từ Excel/Google Sheets để tự chuyển thành bảng Markdown.</li>" +
@@ -156,6 +158,7 @@
       "mode.edit": "Edit", "mode.editTitle": "Edit (Alt+1)",
       "mode.split": "Split", "mode.splitTitle": "Split view (Alt+2)",
       "mode.view": "Preview", "mode.viewTitle": "Preview (Alt+3)",
+      "mode.pro": "Pro", "mode.proTitle": "Professional editing (Alt+4)",
       "gs.placeholder": "Search all documents…",
       "gs.aria": "Search all documents",
       "gs.kbdTitle": "Shortcut: / or Ctrl+Shift+F",
@@ -197,6 +200,10 @@
       "toolbar.aria": "Formatting",
       "tb.heading": "Heading H1 → H2 → H3 (press repeatedly)",
       "tb.bold": "Bold (Ctrl+B)", "tb.italic": "Italic (Ctrl+I)", "tb.strike": "Strikethrough",
+      "tb.underline": "Underline", "tb.fontFamily": "Font family", "tb.fontSize": "Font size",
+      "tb.textColor": "Text color", "tb.highlight": "Highlight color",
+      "tb.alignLeft": "Align left", "tb.alignCenter": "Center", "tb.alignRight": "Align right",
+      "tb.indent": "Indent", "tb.outdent": "Outdent", "tb.undo": "Undo", "tb.redo": "Redo",
       "tb.code": "Inline code (Ctrl+E)", "tb.codeblock": "Code block", "tb.link": "Link (Ctrl+K)",
       "tb.image": "Image", "tb.quote": "Quote", "tb.ul": "Bulleted list", "tb.ol": "Numbered list",
       "tb.task": "Task list", "tb.table": "Insert table", "tb.hr": "Horizontal rule",
@@ -205,7 +212,19 @@
       "editor.label": "Markdown content",
       "editor.placeholder": "Paste or type Markdown here… (drop .md files onto the window to open them)",
       "split.aria": "Resize panes",
+      "preview.label": "Markdown preview. Click here to paste formatted content.",
       "preview.empty": "Nothing here yet. Type Markdown in the editor to preview it here.",
+      "pro.editorLabel": "Professional rich-text editor",
+      "pro.empty": "Type or paste formatted content here.",
+      "pro.linkPrompt": "Enter the link URL:",
+      "pro.imagePrompt": "Enter the image URL:",
+      "pro.imageAltPrompt": "Enter alternative text for the image:",
+      "pro.tableRowsPrompt": "Number of table rows (1-20):",
+      "pro.tableColsPrompt": "Number of table columns (1-12):",
+      "pro.tableHeading": "Heading",
+      "pro.tableCell": "Cell",
+      "pro.invalidTableSize": "Choose a whole number within the allowed table size.",
+      "pro.invalidUrl": "Use an http, https, or mailto URL.",
       "zoom.aria": "Font size", "zoom.dec": "Smaller text", "zoom.inc": "Larger text",
       "maker": "© 2026 · A product of Hỗ Trợ Giải Pháp Số (hotroso.github.io). All rights reserved.",
       "drop": "Drop Markdown files here to open them",
@@ -356,6 +375,7 @@
       "mode.edit": "Soạn thảo", "mode.editTitle": "Soạn thảo (Alt+1)",
       "mode.split": "Song song", "mode.splitTitle": "Song song (Alt+2)",
       "mode.view": "Xem", "mode.viewTitle": "Xem (Alt+3)",
+      "mode.pro": "Chuyên nghiệp", "mode.proTitle": "Chế độ soạn thảo chuyên nghiệp (Alt+4)",
       "gs.placeholder": "Tìm trong tất cả tài liệu (gõ không dấu được)…",
       "gs.aria": "Tìm trong tất cả tài liệu",
       "gs.kbdTitle": "Phím tắt: / hoặc Ctrl+Shift+F",
@@ -397,6 +417,10 @@
       "toolbar.aria": "Định dạng",
       "tb.heading": "Tiêu đề H1 → H2 → H3 (nhấn nhiều lần)",
       "tb.bold": "Đậm (Ctrl+B)", "tb.italic": "Nghiêng (Ctrl+I)", "tb.strike": "Gạch ngang",
+      "tb.underline": "Gạch chân", "tb.fontFamily": "Phông chữ", "tb.fontSize": "Cỡ chữ",
+      "tb.textColor": "Màu chữ", "tb.highlight": "Màu tô sáng",
+      "tb.alignLeft": "Căn trái", "tb.alignCenter": "Căn giữa", "tb.alignRight": "Căn phải",
+      "tb.indent": "Thụt vào", "tb.outdent": "Thụt ra", "tb.undo": "Hoàn tác", "tb.redo": "Làm lại",
       "tb.code": "Code trong dòng (Ctrl+E)", "tb.codeblock": "Khối code", "tb.link": "Liên kết (Ctrl+K)",
       "tb.image": "Hình ảnh", "tb.quote": "Trích dẫn", "tb.ul": "Danh sách", "tb.ol": "Danh sách đánh số",
       "tb.task": "Danh sách việc cần làm", "tb.table": "Chèn bảng", "tb.hr": "Đường kẻ ngang",
@@ -405,7 +429,19 @@
       "editor.label": "Nội dung markdown",
       "editor.placeholder": "Dán hoặc gõ markdown vào đây… (kéo thả file .md vào cửa sổ để mở)",
       "split.aria": "Thay đổi độ rộng khung",
+      "preview.label": "Bản xem trước markdown. Nhấp vào đây để dán nội dung có định dạng.",
       "preview.empty": "Chưa có nội dung. Gõ markdown ở khung soạn thảo để xem trước tại đây.",
+      "pro.editorLabel": "Khung soạn thảo định dạng chuyên nghiệp",
+      "pro.empty": "Gõ hoặc dán nội dung có định dạng vào đây.",
+      "pro.linkPrompt": "Nhập địa chỉ liên kết:",
+      "pro.imagePrompt": "Nhập địa chỉ ảnh:",
+      "pro.imageAltPrompt": "Nhập văn bản thay thế cho ảnh:",
+      "pro.tableRowsPrompt": "Số dòng của bảng (1-20):",
+      "pro.tableColsPrompt": "Số cột của bảng (1-12):",
+      "pro.tableHeading": "Tiêu đề",
+      "pro.tableCell": "Ô",
+      "pro.invalidTableSize": "Hãy chọn số nguyên trong giới hạn kích thước bảng.",
+      "pro.invalidUrl": "Hãy dùng địa chỉ http, https hoặc mailto.",
       "zoom.aria": "Cỡ chữ", "zoom.dec": "Giảm cỡ chữ", "zoom.inc": "Tăng cỡ chữ",
       "maker": "© 2026 · Một sản phẩm của Hỗ Trợ Giải Pháp Số (hotroso.github.io). Bảo lưu mọi quyền.",
       "drop": "Thả file markdown vào đây để mở",
