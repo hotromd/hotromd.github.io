@@ -1350,7 +1350,14 @@
     });
     prefs.mode = mode;
     savePrefs();
-    if (mode === "pro" && changed) refreshProEditor();
+    closeTablePicker();
+    if (mode === "pro") {
+      if (changed) refreshProEditor();
+      else updateProToolbarState();
+    } else {
+      hideProFloatingUi();
+      updateProToolbarState();
+    }
     if (mode === "split") syncScroll(editor, paneView);
     buildOutline();
   }
@@ -1399,7 +1406,12 @@
     applyLanguage();
     // Re-render everything that builds text in JS
     applyTheme();
-    if (current) { renderTitle(); render(); updateStats(); }
+    if (current) {
+      renderTitle();
+      if (app.dataset.mode === "pro") refreshProEditor();
+      render();
+      updateStats();
+    }
     renderList();
     if (lastSavedAt) setSaveState(tr("saved", { time: lastSavedAt }));
     if (!gsPanel.hidden) renderSearch();
@@ -1636,11 +1648,24 @@
   };
 
   var proSavedRange = null;
+  var proTableBar = $("pro-table-bar");
+  var proAddRowEdge = $("pro-add-row-edge");
+  var proAddColEdge = $("pro-add-col-edge");
+  var proMediaBar = $("pro-media-bar");
+  var activeProCell = null;
+  var activeProTable = null;
+  var activeProMedia = null;
+  var tablePicker = null;
+
   function rememberProSelection() {
     var selection = window.getSelection();
     if (selection && selection.rangeCount && proEditor.contains(selection.anchorNode) &&
         proEditor.contains(selection.focusNode)) {
       proSavedRange = selection.getRangeAt(0).cloneRange();
+    }
+    if (app.dataset.mode === "pro") {
+      updateProContextUi();
+      updateProToolbarState();
     }
   }
 
@@ -1651,6 +1676,11 @@
     selection.removeAllRanges();
     if (proSavedRange && proEditor.contains(proSavedRange.commonAncestorContainer)) {
       selection.addRange(proSavedRange);
+    } else if (activeProCell && proEditor.contains(activeProCell)) {
+      var cellRange = document.createRange();
+      cellRange.selectNodeContents(activeProCell);
+      cellRange.collapse(false);
+      selection.addRange(cellRange);
     } else {
       var range = document.createRange();
       range.selectNodeContents(proEditor);
@@ -1659,10 +1689,25 @@
     }
   }
 
+  function enhanceProNodes(container) {
+    container.querySelectorAll('input[type="checkbox"]').forEach(function (cb) { cb.disabled = false; });
+    container.querySelectorAll(".markdown-alert-title").forEach(function (t) {
+      t.setAttribute("contenteditable", "false");
+      t.title = tr("pro.alertClickTitle");
+    });
+    container.querySelectorAll("[data-math]").forEach(function (m) {
+      m.setAttribute("contenteditable", "false");
+      m.title = tr("tb.math");
+    });
+    renderMath(container);
+  }
+
   function refreshProEditor() {
     proEditor.innerHTML = buildHtml(editor.value);
-    proEditor.querySelectorAll('input[type="checkbox"]').forEach(function (cb) { cb.disabled = false; });
+    enhanceProNodes(proEditor);
     proSavedRange = null;
+    hideProFloatingUi();
+    updateProToolbarState();
   }
 
   function escapeMarkdownText(text) {
@@ -1673,19 +1718,34 @@
     return String(url || "").replace(/ /g, "%20").replace(/\(/g, "%28").replace(/\)/g, "%29");
   }
 
+  function stripProUiAttrs(el) {
+    var clone = el.cloneNode(true);
+    clone.classList.remove("pro-active-table", "pro-active-cell", "pro-active-media");
+    if (!clone.className) clone.removeAttribute("class");
+    clone.querySelectorAll(".pro-active-table, .pro-active-cell, .pro-active-media").forEach(function (n) {
+      n.classList.remove("pro-active-table", "pro-active-cell", "pro-active-media");
+      if (!n.className) n.removeAttribute("class");
+    });
+    return clone;
+  }
+
   function proInline(node) {
     if (node.nodeType === 3) return escapeMarkdownText(node.nodeValue);
     if (node.nodeType !== 1) return "";
     var tag = node.tagName.toLowerCase();
+    if (node.hasAttribute("data-math")) {
+      var mCode = node.getAttribute("data-math") || "";
+      return node.classList.contains("math-block") ? "\n\n$$\n" + mCode + "\n$$\n\n" : "$" + mCode + "$";
+    }
     if (tag === "br") return "  \n";
     if (tag === "input") return "";
-    if (node.hasAttribute("style") || tag === "font") return sanitizePastedHtml(node.outerHTML);
+    if (node.hasAttribute("style") || tag === "font") return sanitizePastedHtml(stripProUiAttrs(node).outerHTML);
 
     var content = Array.prototype.map.call(node.childNodes, proInline).join("");
     if (tag === "b" || tag === "strong") return "**" + content + "**";
     if (tag === "i" || tag === "em") return "*" + content + "*";
     if (tag === "s" || tag === "strike" || tag === "del") return "~~" + content + "~~";
-    if (tag === "u" || tag === "sub" || tag === "sup") return sanitizePastedHtml(node.outerHTML);
+    if (tag === "u" || tag === "sub" || tag === "sup") return sanitizePastedHtml(stripProUiAttrs(node).outerHTML);
     if (tag === "code") {
       var ticks = (node.textContent.match(/`+/g) || []).reduce(function (n, s) { return Math.max(n, s.length); }, 0) + 1;
       var fence = new Array(ticks + 1).join("`");
@@ -1695,6 +1755,9 @@
       return "[" + content + "](" + markdownUrl(node.getAttribute("href")) + ")";
     }
     if (tag === "img" && node.getAttribute("src")) {
+      if (node.hasAttribute("width") || node.hasAttribute("height")) {
+        return sanitizePastedHtml(stripProUiAttrs(node).outerHTML);
+      }
       return "![" + escapeMarkdownText(node.getAttribute("alt") || "") + "](" + markdownUrl(node.getAttribute("src")) + ")";
     }
     return content;
@@ -1704,7 +1767,21 @@
     if (node.nodeType === 3) return escapeMarkdownText(node.nodeValue).trim();
     if (node.nodeType !== 1) return "";
     var tag = node.tagName.toLowerCase();
-    if (node.hasAttribute("style") || node.hasAttribute("align")) return sanitizePastedHtml(node.outerHTML);
+    if (node.hasAttribute("data-math")) {
+      var mathCode = node.getAttribute("data-math") || "";
+      return node.classList.contains("math-block") ? "$$\n" + mathCode + "\n$$" : "$" + mathCode + "$";
+    }
+    if (node.classList.contains("markdown-alert")) {
+      var aType = (node.getAttribute("data-alert") || "note").toUpperCase();
+      var aBody = Array.prototype.filter.call(node.childNodes, function (c) {
+        return !(c.nodeType === 1 && c.classList.contains("markdown-alert-title"));
+      }).map(proBlock).filter(Boolean).join("\n\n");
+      var aLines = aBody ? aBody.split("\n").map(function (l) { return "> " + l; }).join("\n") : "> ";
+      return "> [!" + aType + "]\n" + aLines;
+    }
+    if (tag !== "table" && (node.hasAttribute("style") || node.hasAttribute("align"))) {
+      return sanitizePastedHtml(stripProUiAttrs(node).outerHTML);
+    }
     if (/^h[1-6]$/.test(tag)) {
       return new Array(+tag.charAt(1) + 1).join("#") + " " +
         Array.prototype.map.call(node.childNodes, proInline).join("").trim();
@@ -1756,11 +1833,30 @@
     }).join("\n");
   }
 
-  function proTable(table) {
-    if (table.querySelector("[style], [colspan], [rowspan], [align], [bgcolor]")) {
-      return sanitizePastedHtml(table.outerHTML);
+  function getCellAlign(cell) {
+    if (!cell) return "";
+    var a = (cell.getAttribute("align") || (cell.style && cell.style.textAlign) || "").toLowerCase().trim();
+    return (a === "left" || a === "center" || a === "right") ? a : "";
+  }
+
+  function hasComplexTableHtml(table) {
+    if (table.hasAttribute("style") || table.hasAttribute("align") || table.hasAttribute("bgcolor")) return true;
+    if (table.querySelector("[colspan], [rowspan], [bgcolor]")) return true;
+    var styled = table.querySelectorAll("[style]");
+    for (var i = 0; i < styled.length; i++) {
+      var st = styled[i].getAttribute("style") || "";
+      var rest = st.replace(/text-align\s*:\s*(?:left|center|right|justify)\s*;?/gi, "").trim();
+      if (rest) return true;
     }
-    var rows = Array.prototype.slice.call(table.rows).map(function (row) {
+    return false;
+  }
+
+  function proTable(table) {
+    if (hasComplexTableHtml(table)) {
+      return sanitizePastedHtml(stripProUiAttrs(table).outerHTML);
+    }
+    var rawRows = Array.prototype.slice.call(table.rows);
+    var rows = rawRows.map(function (row) {
       return Array.prototype.map.call(row.cells, function (cell) {
         return Array.prototype.map.call(cell.childNodes, proInline).join("")
           .replace(/\s*\n\s*/g, " ").replace(/\|/g, "\\|").trim();
@@ -1768,11 +1864,20 @@
     }).filter(function (row) { return row.length; });
     if (!rows.length) return "";
     var width = rows.reduce(function (n, row) { return Math.max(n, row.length); }, 0);
+    var aligns = [];
+    for (var c = 0; c < width; c++) {
+      var colAlign = "";
+      for (var r = 0; r < rawRows.length; r++) {
+        var ca = getCellAlign(rawRows[r].cells[c]);
+        if (ca) { colAlign = ca; break; }
+      }
+      aligns.push(colAlign === "center" ? ":---:" : colAlign === "right" ? "---:" : colAlign === "left" ? ":---" : "---");
+    }
     function renderRow(row) {
       while (row.length < width) row.push("");
       return "| " + row.join(" | ") + " |";
     }
-    return [renderRow(rows[0]), renderRow(new Array(width).fill("---"))]
+    return [renderRow(rows[0]), renderRow(aligns)]
       .concat(rows.slice(1).map(renderRow)).join("\n");
   }
 
@@ -1786,6 +1891,628 @@
     if (editor.value === content) return;
     editor.value = content;
     onContentChange();
+  }
+
+  // ---------- Pro Contextual UI (Table bar, Edge buttons, Media bar, Toolbar state) ----------
+  function clearProTableHighlights() {
+    proEditor.querySelectorAll(".pro-active-table").forEach(function (el) { el.classList.remove("pro-active-table"); });
+    proEditor.querySelectorAll(".pro-active-cell").forEach(function (el) { el.classList.remove("pro-active-cell"); });
+  }
+
+  function clearProMediaHighlights() {
+    proEditor.querySelectorAll(".pro-active-media").forEach(function (el) { el.classList.remove("pro-active-media"); });
+  }
+
+  function hideProFloatingUi() {
+    clearProTableHighlights();
+    clearProMediaHighlights();
+    activeProCell = null;
+    activeProTable = null;
+    activeProMedia = null;
+    if (proTableBar) proTableBar.hidden = true;
+    if (proAddRowEdge) proAddRowEdge.hidden = true;
+    if (proAddColEdge) proAddColEdge.hidden = true;
+    if (proMediaBar) proMediaBar.hidden = true;
+  }
+
+  function positionProTableUi() {
+    if (!activeProTable || !proEditor.contains(activeProTable) || app.dataset.mode !== "pro") {
+      if (proTableBar) proTableBar.hidden = true;
+      if (proAddRowEdge) proAddRowEdge.hidden = true;
+      if (proAddColEdge) proAddColEdge.hidden = true;
+      return;
+    }
+    var viewRect = paneView.getBoundingClientRect();
+    var tblRect = activeProTable.getBoundingClientRect();
+    var scrollTop = paneView.scrollTop;
+    var scrollLeft = paneView.scrollLeft;
+
+    var tblTop = tblRect.top - viewRect.top + scrollTop;
+    var tblLeft = tblRect.left - viewRect.left + scrollLeft;
+    var tblWidth = tblRect.width;
+    var tblHeight = tblRect.height;
+
+    proTableBar.hidden = false;
+    var barH = proTableBar.offsetHeight || 36;
+    var barW = proTableBar.offsetWidth || 320;
+    var idealTop = tblTop - barH - 8;
+    if (idealTop < scrollTop + 6) {
+      idealTop = Math.min(tblTop + tblHeight - barH - 6, Math.max(tblTop + 4, scrollTop + 6));
+    }
+    var idealLeft = Math.max(12, Math.min(tblLeft, paneView.clientWidth - barW - 12));
+    proTableBar.style.top = Math.max(4, idealTop) + "px";
+    proTableBar.style.left = idealLeft + "px";
+
+    // Edge "+" button for adding a row at the bottom
+    proAddRowEdge.hidden = false;
+    proAddRowEdge.style.top = (tblTop + tblHeight + 2) + "px";
+    proAddRowEdge.style.left = tblLeft + "px";
+    proAddRowEdge.style.width = tblWidth + "px";
+    proAddRowEdge.style.height = "20px";
+
+    // Edge "+" button for adding a column at the right
+    proAddColEdge.hidden = false;
+    proAddColEdge.style.top = tblTop + "px";
+    proAddColEdge.style.left = (tblLeft + tblWidth + 2) + "px";
+    proAddColEdge.style.width = "20px";
+    proAddColEdge.style.height = tblHeight + "px";
+
+    // Highlight active column alignment in table bar
+    var curAlign = getCellAlign(activeProCell);
+    proTableBar.querySelectorAll("[data-table-cmd^='col-align-']").forEach(function (btn) {
+      var a = btn.getAttribute("data-table-cmd").replace("col-align-", "");
+      btn.classList.toggle("is-active", curAlign === a);
+    });
+  }
+
+  function positionProMediaUi() {
+    if (!activeProMedia || !proEditor.contains(activeProMedia) || app.dataset.mode !== "pro") {
+      if (proMediaBar) proMediaBar.hidden = true;
+      return;
+    }
+    var viewRect = paneView.getBoundingClientRect();
+    var mRect = activeProMedia.getBoundingClientRect();
+    var mTop = mRect.top - viewRect.top + paneView.scrollTop;
+    var mLeft = mRect.left - viewRect.left + paneView.scrollLeft;
+
+    proMediaBar.hidden = false;
+    var barH = proMediaBar.offsetHeight || 34;
+    var barW = proMediaBar.offsetWidth || 220;
+    var top = mTop - barH - 6;
+    if (top < paneView.scrollTop + 6) top = mTop + mRect.height + 6;
+    var left = Math.max(12, Math.min(mLeft, paneView.clientWidth - barW - 12));
+    proMediaBar.style.top = Math.max(4, top) + "px";
+    proMediaBar.style.left = left + "px";
+  }
+
+  function showProMediaBarFor(el) {
+    clearProMediaHighlights();
+    activeProMedia = el;
+    if (!el) { proMediaBar.hidden = true; return; }
+    proMediaBar.innerHTML = "";
+    if (el.tagName === "A") {
+      var href = el.getAttribute("href") || "";
+      var u = document.createElement("span");
+      u.className = "ptb-url";
+      u.textContent = href;
+      u.title = href;
+      proMediaBar.appendChild(u);
+
+      var btnOpen = document.createElement("button");
+      btnOpen.type = "button";
+      btnOpen.textContent = "↗ " + tr("pmb.openLink");
+      btnOpen.addEventListener("click", function () {
+        if (/^https?:\/\//i.test(href) || /^mailto:/i.test(href)) window.open(href, "_blank", "noopener");
+      });
+      proMediaBar.appendChild(btnOpen);
+
+      var btnEdit = document.createElement("button");
+      btnEdit.type = "button";
+      btnEdit.textContent = tr("pmb.editLink");
+      btnEdit.addEventListener("click", function () {
+        var next = window.prompt(tr("pro.linkPrompt"), el.getAttribute("href") || "https://");
+        if (!next) return;
+        var safe = safePasteUrl(next, false);
+        if (!safe) { toast(tr("pro.invalidUrl"), { type: "error" }); return; }
+        el.setAttribute("href", safe);
+        syncProToMarkdown();
+        showProMediaBarFor(el);
+      });
+      proMediaBar.appendChild(btnEdit);
+
+      var btnUnlink = document.createElement("button");
+      btnUnlink.type = "button";
+      btnUnlink.className = "ptb-del";
+      btnUnlink.textContent = tr("pmb.unlink");
+      btnUnlink.addEventListener("click", function () {
+        var parent = el.parentNode;
+        while (el.firstChild) parent.insertBefore(el.firstChild, el);
+        el.remove();
+        hideProFloatingUi();
+        syncProToMarkdown();
+      });
+      proMediaBar.appendChild(btnUnlink);
+    } else if (el.tagName === "IMG") {
+      el.classList.add("pro-active-media");
+      ["25%", "50%", "75%", "100%"].forEach(function (pct) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.textContent = pct;
+        b.classList.toggle("is-active", el.getAttribute("width") === pct || (pct === "100%" && !el.hasAttribute("width")));
+        b.addEventListener("click", function () {
+          if (pct === "100%") el.removeAttribute("width");
+          else el.setAttribute("width", pct);
+          el.removeAttribute("height");
+          syncProToMarkdown();
+          showProMediaBarFor(el);
+        });
+        proMediaBar.appendChild(b);
+      });
+      var sep = document.createElement("span");
+      sep.className = "tb-sep";
+      proMediaBar.appendChild(sep);
+
+      var btnImgEdit = document.createElement("button");
+      btnImgEdit.type = "button";
+      btnImgEdit.textContent = tr("pmb.editImg");
+      btnImgEdit.addEventListener("click", function () {
+        var src = window.prompt(tr("pro.imagePrompt"), el.getAttribute("src") || "https://");
+        if (!src) return;
+        var safe = safePasteUrl(src, true);
+        if (!safe) { toast(tr("pro.invalidUrl"), { type: "error" }); return; }
+        var alt = window.prompt(tr("pro.imageAltPrompt"), el.getAttribute("alt") || "");
+        if (alt === null) return;
+        el.setAttribute("src", safe);
+        el.setAttribute("alt", alt);
+        syncProToMarkdown();
+      });
+      proMediaBar.appendChild(btnImgEdit);
+
+      var btnImgDel = document.createElement("button");
+      btnImgDel.type = "button";
+      btnImgDel.className = "ptb-del";
+      btnImgDel.title = tr("pmb.delImg");
+      btnImgDel.appendChild(icon("trash"));
+      btnImgDel.addEventListener("click", function () {
+        el.remove();
+        hideProFloatingUi();
+        syncProToMarkdown();
+      });
+      proMediaBar.appendChild(btnImgDel);
+    }
+    positionProMediaUi();
+  }
+
+  function updateProContextUi() {
+    if (app.dataset.mode !== "pro") { hideProFloatingUi(); return; }
+    var sel = window.getSelection();
+    var node = sel && sel.rangeCount ? sel.anchorNode : null;
+    var el = node ? (node.nodeType === 1 ? node : node.parentElement) : null;
+    if (!el || !proEditor.contains(el)) return;
+
+    var cell = el.closest("td, th");
+    var tbl = cell ? cell.closest("table") : null;
+    clearProTableHighlights();
+    if (cell && tbl && proEditor.contains(tbl)) {
+      activeProCell = cell;
+      activeProTable = tbl;
+      tbl.classList.add("pro-active-table");
+      cell.classList.add("pro-active-cell");
+      positionProTableUi();
+    } else {
+      activeProCell = null;
+      activeProTable = null;
+      if (proTableBar) proTableBar.hidden = true;
+      if (proAddRowEdge) proAddRowEdge.hidden = true;
+      if (proAddColEdge) proAddColEdge.hidden = true;
+    }
+
+    var link = el.closest("a[href]");
+    if (link && proEditor.contains(link)) {
+      showProMediaBarFor(link);
+    } else if (!activeProMedia || activeProMedia.tagName !== "IMG") {
+      clearProMediaHighlights();
+      activeProMedia = null;
+      if (proMediaBar) proMediaBar.hidden = true;
+    }
+  }
+
+  function updateProToolbarState() {
+    var tb = $("toolbar");
+    if (!tb) return;
+    if (app.dataset.mode !== "pro") {
+      tb.querySelectorAll("button.is-active").forEach(function (b) { b.classList.remove("is-active"); });
+      return;
+    }
+    var sel = window.getSelection();
+    var node = sel && sel.rangeCount ? sel.anchorNode : null;
+    var el = node ? (node.nodeType === 1 ? node : node.parentElement) : null;
+    var inside = el && proEditor.contains(el);
+
+    function queryState(cmd) {
+      if (!inside) return false;
+      try { return document.queryCommandState(cmd); } catch (e) { return false; }
+    }
+
+    var states = {
+      bold: queryState("bold"),
+      italic: queryState("italic"),
+      strike: queryState("strikeThrough"),
+      ul: queryState("insertUnorderedList"),
+      ol: queryState("insertOrderedList"),
+      heading: !!(inside && el.closest("h1,h2,h3,h4,h5,h6")),
+      code: !!(inside && el.closest("code") && !el.closest("pre")),
+      codeblock: !!(inside && el.closest("pre")),
+      quote: !!(inside && el.closest("blockquote")),
+      alert: !!(inside && el.closest(".markdown-alert")),
+      table: !!(inside && el.closest("table"))
+    };
+    Object.keys(states).forEach(function (k) {
+      var btn = tb.querySelector('[data-cmd="' + k + '"]');
+      if (btn) btn.classList.toggle("is-active", states[k]);
+    });
+    ["underline", "justifyLeft", "justifyCenter", "justifyRight"].forEach(function (cmd) {
+      var btn = tb.querySelector('[data-pro-command="' + cmd + '"]');
+      if (btn) btn.classList.toggle("is-active", queryState(cmd));
+    });
+  }
+
+  // ---------- Pro Table Manipulation (Add/Delete/Move Rows & Columns, Align, Navigation) ----------
+  function focusProCell(cell, selectText) {
+    if (!cell || !proEditor.contains(cell)) return;
+    activeProCell = cell;
+    activeProTable = cell.closest("table");
+    clearProTableHighlights();
+    if (activeProTable) activeProTable.classList.add("pro-active-table");
+    cell.classList.add("pro-active-cell");
+    proEditor.focus();
+    var range = document.createRange();
+    range.selectNodeContents(cell);
+    if (!selectText) range.collapse(false);
+    var sel = window.getSelection();
+    if (sel) {
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+    rememberProSelection();
+    positionProTableUi();
+  }
+
+  function makeTableCell(tag, align, htmlContent) {
+    var c = document.createElement(tag);
+    if (align) {
+      c.setAttribute("align", align);
+      c.style.textAlign = align;
+    }
+    c.innerHTML = htmlContent != null ? htmlContent : "<br>";
+    return c;
+  }
+
+  function ensureTableSections(table) {
+    var thead = table.querySelector("thead");
+    var tbody = table.querySelector("tbody");
+    if (!thead && table.rows.length > 0) {
+      thead = document.createElement("thead");
+      var firstRow = table.rows[0];
+      Array.prototype.slice.call(firstRow.cells).forEach(function (c) {
+        if (c.tagName !== "TH") {
+          var th = makeTableCell("th", getCellAlign(c), c.innerHTML);
+          c.replaceWith(th);
+        }
+      });
+      thead.appendChild(firstRow);
+      table.insertBefore(thead, table.firstChild);
+    }
+    if (!tbody) {
+      tbody = document.createElement("tbody");
+      Array.prototype.slice.call(table.querySelectorAll(":scope > tr")).forEach(function (r) {
+        tbody.appendChild(r);
+      });
+      table.appendChild(tbody);
+    }
+    return { thead: thead, tbody: tbody };
+  }
+
+  function runProTableAction(action) {
+    var cell = activeProCell;
+    var table = activeProTable;
+    if (!cell || !table || !proEditor.contains(table)) {
+      updateProContextUi();
+      cell = activeProCell;
+      table = activeProTable;
+    }
+    if (!cell || !table) return;
+
+    var sections = ensureTableSections(table);
+    var rows = Array.prototype.slice.call(table.rows);
+    var row = cell.parentElement;
+    var rowIndex = rows.indexOf(row);
+    var colIndex = cell.cellIndex;
+    var colCount = rows.reduce(function (n, r) { return Math.max(n, r.cells.length); }, 1);
+    if (rowIndex < 0 || colIndex < 0) return;
+
+    function colAlignAt(cIdx) {
+      for (var i = 0; i < rows.length; i++) {
+        var a = getCellAlign(rows[i].cells[cIdx]);
+        if (a) return a;
+      }
+      return "";
+    }
+
+    if (action === "row-above") {
+      var newRowAbove = document.createElement("tr");
+      if (row.parentElement === sections.thead) {
+        // Demote current header row to top of tbody as <td>, put new <th> row in thead
+        var demoted = document.createElement("tr");
+        for (var c0 = 0; c0 < colCount; c0++) {
+          var oldTh = row.cells[c0];
+          demoted.appendChild(makeTableCell("td", colAlignAt(c0), oldTh ? oldTh.innerHTML : "<br>"));
+          newRowAbove.appendChild(makeTableCell("th", colAlignAt(c0), escapeHtml(tr("pro.tableHeading"))));
+        }
+        sections.thead.replaceChild(newRowAbove, row);
+        sections.tbody.insertBefore(demoted, sections.tbody.firstChild);
+        syncProToMarkdown();
+        focusProCell(newRowAbove.cells[Math.min(colIndex, newRowAbove.cells.length - 1)], true);
+        return;
+      }
+      for (var ca = 0; ca < colCount; ca++) {
+        newRowAbove.appendChild(makeTableCell("td", colAlignAt(ca), "<br>"));
+      }
+      row.parentElement.insertBefore(newRowAbove, row);
+      syncProToMarkdown();
+      focusProCell(newRowAbove.cells[Math.min(colIndex, newRowAbove.cells.length - 1)], false);
+    } else if (action === "row-below" || action === "row-end") {
+      var newRowBelow = document.createElement("tr");
+      for (var cb = 0; cb < colCount; cb++) {
+        newRowBelow.appendChild(makeTableCell("td", colAlignAt(cb), "<br>"));
+      }
+      if (action === "row-end") {
+        sections.tbody.appendChild(newRowBelow);
+      } else if (row.parentElement === sections.thead) {
+        sections.tbody.insertBefore(newRowBelow, sections.tbody.firstChild);
+      } else {
+        row.parentElement.insertBefore(newRowBelow, row.nextSibling);
+      }
+      syncProToMarkdown();
+      focusProCell(newRowBelow.cells[action === "row-end" ? 0 : Math.min(colIndex, newRowBelow.cells.length - 1)], false);
+    } else if (action === "row-up" || action === "row-down") {
+      var targetRowIdx = rowIndex + (action === "row-up" ? -1 : 1);
+      if (targetRowIdx < 0 || targetRowIdx >= rows.length) return;
+      var otherRow = rows[targetRowIdx];
+      for (var cm = 0; cm < colCount; cm++) {
+        var cA = row.cells[cm], cB = otherRow.cells[cm];
+        if (cA && cB) {
+          var tmpHtml = cA.innerHTML;
+          cA.innerHTML = cB.innerHTML;
+          cB.innerHTML = tmpHtml;
+        }
+      }
+      syncProToMarkdown();
+      focusProCell(otherRow.cells[Math.min(colIndex, otherRow.cells.length - 1)], false);
+    } else if (action === "row-del") {
+      if (rows.length <= 1) {
+        table.remove();
+        hideProFloatingUi();
+        syncProToMarkdown();
+        return;
+      }
+      var nextFocusRowIdx = rowIndex < rows.length - 1 ? rowIndex + 1 : rowIndex - 1;
+      var nextFocusRow = rows[nextFocusRowIdx];
+      if (row.parentElement === sections.thead && sections.tbody.rows.length > 0) {
+        // Promote first tbody row to thead
+        var promoted = sections.tbody.rows[0];
+        var newHeadRow = document.createElement("tr");
+        Array.prototype.slice.call(promoted.cells).forEach(function (td, idx) {
+          newHeadRow.appendChild(makeTableCell("th", colAlignAt(idx), td.innerHTML));
+        });
+        sections.thead.replaceChild(newHeadRow, row);
+        promoted.remove();
+        syncProToMarkdown();
+        focusProCell(newHeadRow.cells[Math.min(colIndex, newHeadRow.cells.length - 1)], false);
+        return;
+      }
+      row.remove();
+      syncProToMarkdown();
+      if (nextFocusRow && proEditor.contains(nextFocusRow)) {
+        focusProCell(nextFocusRow.cells[Math.min(colIndex, nextFocusRow.cells.length - 1)], false);
+      }
+    } else if (action === "col-left" || action === "col-right" || action === "col-end") {
+      var insertAt = action === "col-left" ? colIndex : action === "col-right" ? colIndex + 1 : colCount;
+      var targetCellToFocus = null;
+      rows.forEach(function (r) {
+        var isHead = r.parentElement === sections.thead || !!r.querySelector("th");
+        var newCell = makeTableCell(isHead ? "th" : "td", "", isHead ? escapeHtml(tr("pro.tableHeading")) : "<br>");
+        var refCell = r.cells[insertAt] || null;
+        r.insertBefore(newCell, refCell);
+        if (r === row) targetCellToFocus = newCell;
+      });
+      if (!targetCellToFocus && rows[0]) targetCellToFocus = rows[0].cells[insertAt];
+      syncProToMarkdown();
+      focusProCell(targetCellToFocus, targetCellToFocus && targetCellToFocus.tagName === "TH");
+    } else if (action === "col-left-move" || action === "col-right-move") {
+      var targetColIdx = colIndex + (action === "col-left-move" ? -1 : 1);
+      if (targetColIdx < 0 || targetColIdx >= colCount) return;
+      rows.forEach(function (r) {
+        var c1 = r.cells[colIndex], c2 = r.cells[targetColIdx];
+        if (!c1 || !c2) return;
+        if (action === "col-left-move") r.insertBefore(c1, c2);
+        else r.insertBefore(c2, c1);
+      });
+      syncProToMarkdown();
+      focusProCell(row.cells[targetColIdx], false);
+    } else if (action === "col-del") {
+      if (colCount <= 1) {
+        table.remove();
+        hideProFloatingUi();
+        syncProToMarkdown();
+        return;
+      }
+      var nextColIdx = Math.min(colIndex, colCount - 2);
+      rows.forEach(function (r) {
+        if (r.cells[colIndex]) r.cells[colIndex].remove();
+      });
+      syncProToMarkdown();
+      focusProCell(row.cells[nextColIdx], false);
+    } else if (/^col-align-(left|center|right)$/.test(action)) {
+      var desiredAlign = action.replace("col-align-", "");
+      var currentAlign = getCellAlign(cell);
+      var nextAlign = currentAlign === desiredAlign ? "" : desiredAlign;
+      rows.forEach(function (r) {
+        var c = r.cells[colIndex];
+        if (!c) return;
+        if (nextAlign) {
+          c.setAttribute("align", nextAlign);
+          c.style.textAlign = nextAlign;
+        } else {
+          c.removeAttribute("align");
+          c.style.textAlign = "";
+          if (!c.getAttribute("style")) c.removeAttribute("style");
+        }
+      });
+      syncProToMarkdown();
+      focusProCell(cell, false);
+    } else if (action === "table-dup") {
+      var clone = stripProUiAttrs(table);
+      table.parentNode.insertBefore(clone, table.nextSibling);
+      syncProToMarkdown();
+      var firstCell = clone.querySelector("th, td");
+      if (firstCell) focusProCell(firstCell, false);
+    } else if (action === "table-del") {
+      table.remove();
+      hideProFloatingUi();
+      syncProToMarkdown();
+      proEditor.focus();
+    }
+  }
+
+  // ---------- Interactive Table Grid Picker ----------
+  function closeTablePicker() {
+    if (tablePicker) {
+      tablePicker.remove();
+      tablePicker = null;
+    }
+  }
+
+  function insertNewProTable(rowCount, colCount) {
+    rowCount = Math.max(1, Math.min(30, Number(rowCount) || 3));
+    colCount = Math.max(1, Math.min(16, Number(colCount) || 3));
+    restoreProSelection();
+    var bodyRowsCount = Math.max(1, rowCount - 1);
+    var headCells = [];
+    for (var c = 1; c <= colCount; c++) {
+      headCells.push("<th>" + escapeHtml(tr("pro.tableHeading") + " " + c) + "</th>");
+    }
+    var bodyRows = [];
+    for (var r = 0; r < bodyRowsCount; r++) {
+      bodyRows.push("<tr>" + new Array(colCount + 1).join("<td><br></td>") + "</tr>");
+    }
+    var html = "<table><thead><tr>" + headCells.join("") + "</tr></thead><tbody>" + bodyRows.join("") + "</tbody></table><p><br></p>";
+    insertProHtml(html);
+    var tables = proEditor.querySelectorAll("table");
+    var lastTable = tables[tables.length - 1];
+    if (lastTable) {
+      var firstTh = lastTable.querySelector("th, td");
+      if (firstTh) focusProCell(firstTh, true);
+    }
+  }
+
+  function openProTablePicker(anchorBtn) {
+    if (tablePicker) { closeTablePicker(); return; }
+    rememberProSelection();
+
+    var pop = document.createElement("div");
+    pop.className = "table-picker";
+    var head = document.createElement("div");
+    head.className = "tp-head";
+    var titleSpan = document.createElement("span");
+    titleSpan.textContent = tr("tp.title");
+    var dimSpan = document.createElement("span");
+    dimSpan.className = "tp-dim";
+    dimSpan.textContent = "3 × 3";
+    head.appendChild(titleSpan);
+    head.appendChild(dimSpan);
+    pop.appendChild(head);
+
+    var grid = document.createElement("div");
+    grid.className = "tp-grid";
+    var cells = [];
+
+    function highlightGrid(rows, cols) {
+      dimSpan.textContent = rows + " × " + cols;
+      cells.forEach(function (item) {
+        item.el.classList.toggle("active", item.r <= rows && item.c <= cols);
+      });
+    }
+
+    for (var r = 1; r <= 8; r++) {
+      for (var c = 1; c <= 8; c++) {
+        (function (row, col) {
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "tp-cell";
+          b.setAttribute("aria-label", row + " × " + col);
+          b.addEventListener("mouseenter", function () {
+            highlightGrid(row, col);
+            inRows.value = String(row);
+            inCols.value = String(col);
+          });
+          b.addEventListener("click", function (e) {
+            e.stopPropagation();
+            closeTablePicker();
+            insertNewProTable(row, col);
+          });
+          grid.appendChild(b);
+          cells.push({ el: b, r: row, c: col });
+        })(r, c);
+      }
+    }
+    pop.appendChild(grid);
+
+    var custom = document.createElement("div");
+    custom.className = "tp-custom";
+    var inRows = document.createElement("input");
+    inRows.type = "number";
+    inRows.min = "1";
+    inRows.max = "30";
+    inRows.value = "3";
+    inRows.setAttribute("aria-label", tr("tp.rowsAria"));
+    var mul = document.createElement("span");
+    mul.textContent = "×";
+    var inCols = document.createElement("input");
+    inCols.type = "number";
+    inCols.min = "1";
+    inCols.max = "16";
+    inCols.value = "3";
+    inCols.setAttribute("aria-label", tr("tp.colsAria"));
+    var btnGo = document.createElement("button");
+    btnGo.type = "button";
+    btnGo.className = "btn btn-primary btn-small";
+    btnGo.textContent = tr("tp.insert");
+    btnGo.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var rVal = parseInt(inRows.value, 10) || 3;
+      var cVal = parseInt(inCols.value, 10) || 3;
+      closeTablePicker();
+      insertNewProTable(rVal, cVal);
+    });
+    custom.appendChild(inRows);
+    custom.appendChild(mul);
+    custom.appendChild(inCols);
+    custom.appendChild(btnGo);
+    pop.appendChild(custom);
+
+    highlightGrid(3, 3);
+    pop.addEventListener("mousedown", function (e) {
+      if (e.target.tagName !== "INPUT") e.preventDefault();
+    });
+    pop.addEventListener("click", function (e) { e.stopPropagation(); });
+    document.body.appendChild(pop);
+
+    var rect = (anchorBtn || $("toolbar")).getBoundingClientRect();
+    var pW = pop.offsetWidth || 200;
+    pop.style.top = (rect.bottom + 6) + "px";
+    pop.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - pW - 8)) + "px";
+    tablePicker = pop;
   }
 
   function insertProHtml(html) {
@@ -1805,6 +2532,7 @@
         }
       }
     }
+    enhanceProNodes(proEditor);
     rememberProSelection();
     syncProToMarkdown();
   }
@@ -1830,7 +2558,57 @@
     rememberProSelection();
   }
 
+  function buildProAlertElement(typeKey, bodyHtml) {
+    typeKey = (typeKey || "note").toLowerCase();
+    var box = document.createElement("div");
+    box.className = "markdown-alert markdown-alert-" + typeKey;
+    box.setAttribute("data-alert", typeKey);
+    var titleEl = document.createElement("p");
+    titleEl.className = "markdown-alert-title";
+    titleEl.setAttribute("contenteditable", "false");
+    titleEl.title = tr("pro.alertClickTitle");
+    titleEl.innerHTML = (ALERT_ICONS[typeKey] || ALERT_ICONS.note) + "<span>" + escapeHtml(tr("alert." + typeKey)) + "</span>";
+    box.appendChild(titleEl);
+    var contentP = document.createElement("p");
+    contentP.innerHTML = bodyHtml || escapeHtml(tr("alert." + typeKey));
+    box.appendChild(contentP);
+    return box;
+  }
+
+  function cycleProAlert(alertBox) {
+    var order = ["note", "tip", "important", "warning", "caution"];
+    var cur = (alertBox.getAttribute("data-alert") || "note").toLowerCase();
+    var next = order[(order.indexOf(cur) + 1) % order.length];
+    alertBox.className = "markdown-alert markdown-alert-" + next;
+    alertBox.setAttribute("data-alert", next);
+    var titleEl = alertBox.querySelector(".markdown-alert-title");
+    if (titleEl) {
+      titleEl.innerHTML = (ALERT_ICONS[next] || ALERT_ICONS.note) + "<span>" + escapeHtml(tr("alert." + next)) + "</span>";
+    }
+    syncProToMarkdown();
+  }
+
+  function editProMathNode(mathEl) {
+    var oldCode = mathEl.getAttribute("data-math") || "E = mc^2";
+    var nextCode = window.prompt(tr("pro.mathPrompt"), oldCode);
+    if (nextCode === null) return;
+    if (!nextCode.trim()) {
+      mathEl.remove();
+      syncProToMarkdown();
+      return;
+    }
+    mathEl.setAttribute("data-math", nextCode.trim());
+    mathEl.classList.remove("math-error");
+    renderMath(proEditor);
+    syncProToMarkdown();
+  }
+
   function runProCommand(name, value) {
+    if (name === "table") {
+      var tblBtn = $("toolbar").querySelector('[data-cmd="table"]');
+      openProTablePicker(tblBtn);
+      return;
+    }
     restoreProSelection();
     if (name === "heading") {
       var selection = window.getSelection(), node = selection && selection.anchorNode;
@@ -1846,10 +2624,35 @@
       document.execCommand("formatBlock", false, "<pre>");
     } else if (name === "quote") {
       document.execCommand("formatBlock", false, "<blockquote>");
+    } else if (name === "alert") {
+      var selAlert = window.getSelection();
+      var anchorAlert = selAlert && selAlert.rangeCount ? selAlert.anchorNode : null;
+      var elAlert = anchorAlert ? (anchorAlert.nodeType === 1 ? anchorAlert : anchorAlert.parentElement) : null;
+      var existingAlert = elAlert && proEditor.contains(elAlert) ? elAlert.closest(".markdown-alert") : null;
+      if (existingAlert) {
+        cycleProAlert(existingAlert);
+        return;
+      }
+      var selText = selAlert ? selAlert.toString().trim() : "";
+      var newAlert = buildProAlertElement("note", selText ? escapeHtml(selText) : "");
+      insertProHtml(newAlert.outerHTML + "<p><br></p>");
+      return;
+    } else if (name === "math") {
+      var selMath = window.getSelection();
+      var initialMath = (selMath && selMath.toString().trim()) || "E = mc^2";
+      var formula = window.prompt(tr("pro.mathPrompt"), initialMath);
+      if (!formula || !formula.trim()) return;
+      var isBlockMath = formula.indexOf("\n") >= 0 || formula.indexOf("\\int") >= 0 || formula.indexOf("\\sum") >= 0;
+      var tagMath = isBlockMath ? "div" : "span";
+      var clsMath = isBlockMath ? "math-block" : "math-inline";
+      var mathHtml = "<" + tagMath + ' class="' + clsMath + '" data-math="' + escapeHtml(formula.trim()) + '" contenteditable="false">' +
+        escapeHtml(formula.trim()) + "</" + tagMath + ">" + (isBlockMath ? "<p><br></p>" : " ");
+      insertProHtml(mathHtml);
+      return;
     } else if (name === "ul" || name === "ol") {
       document.execCommand(name === "ul" ? "insertUnorderedList" : "insertOrderedList", false, null);
     } else if (name === "task") {
-      insertProHtml('<ul><li><input type="checkbox"> </li></ul>');
+      insertProHtml('<ul class="contains-task-list"><li class="task-list-item"><input type="checkbox"> </li></ul>');
       return;
     } else if (name === "link") {
       var url = window.prompt(tr("pro.linkPrompt"), "https://");
@@ -1870,27 +2673,6 @@
       var alt = window.prompt(tr("pro.imageAltPrompt"), "");
       if (alt === null) return;
       insertProHtml('<img src="' + escapeHtml(safeSrc) + '" alt="' + escapeHtml(alt || "") + '">');
-      return;
-    } else if (name === "table") {
-      var rowInput = window.prompt(tr("pro.tableRowsPrompt"), "2");
-      if (rowInput === null) return;
-      var rowCount = Number(rowInput);
-      if (!Number.isInteger(rowCount) || rowCount < 1 || rowCount > 20) {
-        toast(tr("pro.invalidTableSize"), { type: "error" });
-        return;
-      }
-      var colInput = window.prompt(tr("pro.tableColsPrompt"), "2");
-      if (colInput === null) return;
-      var colCount = Number(colInput);
-      if (!Number.isInteger(colCount) || colCount < 1 || colCount > 12) {
-        toast(tr("pro.invalidTableSize"), { type: "error" });
-        return;
-      }
-      var table = "<table><thead><tr>" + new Array(colCount + 1).join("<th>" + escapeHtml(tr("pro.tableHeading")) + "</th>") +
-        "</tr></thead><tbody>" + new Array(rowCount - 1).fill(0).map(function () {
-          return "<tr>" + new Array(colCount + 1).join("<td>" + escapeHtml(tr("pro.tableCell")) + "</td>") + "</tr>";
-        }).join("") + "</tbody></table>";
-      insertProHtml(table);
       return;
     } else if (name === "hr") {
       document.execCommand("insertHorizontalRule", false, null);
@@ -3078,6 +3860,7 @@
     document.querySelectorAll(".menu").forEach(function (m) { m.hidden = true; });
     document.querySelectorAll("[aria-haspopup='menu']").forEach(function (b) { b.setAttribute("aria-expanded", "false"); });
     if (moveMenu) { moveMenu.remove(); moveMenu = null; }
+    closeTablePicker();
   }
 
   function menuKeys(e, menu, btn) {
@@ -3352,15 +4135,127 @@
   });
   editor.addEventListener("scroll", function () { syncScroll(editor, paneView); });
   ["keyup", "click", "select"].forEach(function (ev) { editor.addEventListener(ev, updateCursor); });
-  proEditor.addEventListener("input", syncProToMarkdown);
+  proEditor.addEventListener("input", function () {
+    syncProToMarkdown();
+    if (activeProTable) positionProTableUi();
+    if (activeProMedia) positionProMediaUi();
+  });
   proEditor.addEventListener("change", syncProToMarkdown);
   document.addEventListener("paste", pasteIntoPro);
   proEditor.addEventListener("click", function (e) {
-    if (e.target.closest("a[href]")) e.preventDefault();
+    var alertTitle = e.target.closest(".markdown-alert-title");
+    if (alertTitle && proEditor.contains(alertTitle)) {
+      e.preventDefault();
+      var alertBox = alertTitle.closest(".markdown-alert");
+      if (alertBox) cycleProAlert(alertBox);
+      return;
+    }
+    var mathNode = e.target.closest("[data-math]");
+    if (mathNode && proEditor.contains(mathNode)) {
+      e.preventDefault();
+      editProMathNode(mathNode);
+      return;
+    }
+    var imgNode = e.target.closest("img");
+    if (imgNode && proEditor.contains(imgNode)) {
+      showProMediaBarFor(imgNode);
+    } else if (activeProMedia && activeProMedia.tagName === "IMG") {
+      clearProMediaHighlights();
+      activeProMedia = null;
+      if (proMediaBar) proMediaBar.hidden = true;
+    }
+    var linkNode = e.target.closest("a[href]");
+    if (linkNode && proEditor.contains(linkNode)) {
+      e.preventDefault();
+      showProMediaBarFor(linkNode);
+    }
     rememberProSelection();
   });
   ["keyup", "mouseup"].forEach(function (ev) { proEditor.addEventListener(ev, rememberProSelection); });
   document.addEventListener("selectionchange", rememberProSelection);
+
+  proTableBar.addEventListener("mousedown", function (e) { e.preventDefault(); });
+  proTableBar.addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-table-cmd]");
+    if (btn) runProTableAction(btn.getAttribute("data-table-cmd"));
+  });
+  proAddRowEdge.addEventListener("mousedown", function (e) { e.preventDefault(); });
+  proAddRowEdge.addEventListener("click", function () { runProTableAction("row-end"); });
+  proAddColEdge.addEventListener("mousedown", function (e) { e.preventDefault(); });
+  proAddColEdge.addEventListener("click", function () { runProTableAction("col-end"); });
+  proMediaBar.addEventListener("mousedown", function (e) { e.preventDefault(); });
+
+  proEditor.addEventListener("keydown", function (e) {
+    var mod = e.ctrlKey || e.metaKey;
+    if (mod && !e.altKey && !e.shiftKey) {
+      var k = e.key.toLowerCase();
+      var proMap = { b: "bold", i: "italic", u: "underline", k: "link", e: "code" };
+      if (proMap[k]) {
+        e.preventDefault();
+        runProCommand(proMap[k]);
+        return;
+      }
+    }
+    var sel = window.getSelection();
+    var node = sel && sel.rangeCount ? sel.anchorNode : null;
+    var el = node ? (node.nodeType === 1 ? node : node.parentElement) : null;
+    var cell = el && proEditor.contains(el) ? el.closest("td, th") : null;
+    if (!cell) return;
+    var table = cell.closest("table");
+    if (!table || !proEditor.contains(table)) return;
+    activeProCell = cell;
+    activeProTable = table;
+
+    if (e.key === "Tab" && !mod && !e.altKey) {
+      e.preventDefault();
+      var allCells = Array.prototype.slice.call(table.querySelectorAll("th, td"));
+      var idx = allCells.indexOf(cell);
+      if (idx < 0) return;
+      if (!e.shiftKey) {
+        if (idx + 1 < allCells.length) {
+          focusProCell(allCells[idx + 1], true);
+        } else {
+          // At the very last cell of the table: append a new row and focus its first cell
+          runProTableAction("row-end");
+        }
+      } else if (idx > 0) {
+        focusProCell(allCells[idx - 1], true);
+      }
+      return;
+    }
+
+    if (e.key === "Enter" && mod && !e.altKey) {
+      e.preventDefault();
+      runProTableAction(e.shiftKey ? "row-above" : "row-below");
+      return;
+    }
+
+    if (e.key === "Enter" && !mod && !e.altKey && !e.shiftKey && !e.isComposing) {
+      e.preventDefault();
+      var rows = Array.prototype.slice.call(table.rows);
+      var rIdx = rows.indexOf(cell.parentElement);
+      var cIdx = cell.cellIndex;
+      if (rIdx + 1 < rows.length && rows[rIdx + 1].cells[cIdx]) {
+        focusProCell(rows[rIdx + 1].cells[cIdx], false);
+      } else {
+        runProTableAction("row-below");
+      }
+      return;
+    }
+
+    if (e.altKey && !mod && !e.shiftKey) {
+      var arrowMap = {
+        ArrowUp: "row-up",
+        ArrowDown: "row-down",
+        ArrowLeft: "col-left-move",
+        ArrowRight: "col-right-move"
+      };
+      if (arrowMap[e.key]) {
+        e.preventDefault();
+        runProTableAction(arrowMap[e.key]);
+      }
+    }
+  });
 
   var WRAP_PAIRS = {
     "*": ["*", "*"], "_": ["_", "_"], "`": ["`", "`"], "~": ["~~", "~~"],
@@ -3512,6 +4407,10 @@
   paneView.addEventListener("scroll", function () {
     syncScroll(paneView, editor);
     if (!outlineRaf) outlineRaf = requestAnimationFrame(updateOutlineCurrent);
+    if (app.dataset.mode === "pro") {
+      if (activeProTable) positionProTableUi();
+      if (activeProMedia) positionProMediaUi();
+    }
   });
 
   $("btn-new").addEventListener("click", function () { create(""); });
@@ -3541,14 +4440,20 @@
   setupMenu($("btn-templates"), $("menu-templates"));
   setupMenu($("btn-sort"), $("menu-sort"));
   document.addEventListener("click", function (e) {
-    if (!e.target.closest(".menu-wrap, .menu-floating")) closeMenus();
+    if (!e.target.closest(".menu-wrap, .menu-floating, .table-picker, [data-cmd='table']")) closeMenus();
   });
   $("btn-new-folder").addEventListener("click", function () { createFolder(true); });
   $("doc-folder").addEventListener("click", function (e) {
     e.stopPropagation();
     openMoveMenu(current, $("doc-folder"));
   });
-  window.addEventListener("resize", function () { if (moveMenu) closeMenus(); });
+  window.addEventListener("resize", function () {
+    if (moveMenu || tablePicker) closeMenus();
+    if (app.dataset.mode === "pro") {
+      if (activeProTable) positionProTableUi();
+      if (activeProMedia) positionProMediaUi();
+    }
+  });
   docList.addEventListener("scroll", function () { if (moveMenu) closeMenus(); });
 
   var searchTimer;

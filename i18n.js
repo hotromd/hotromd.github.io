@@ -38,7 +38,7 @@
     "<h3>Tips</h3><ul class=\"tips\">" +
     "<li>Drop one or more <code>.md</code> files onto the window to open them.</li>" +
     "<li>Click a checkbox in the preview to tick a task; the Markdown updates itself.</li>" +
-    "<li>Use Pro mode to edit the rendered document directly with rich-text tools.</li>" +
+    "<li>Use Pro mode to edit the rendered document directly with rich-text tools, including interactive table row/column controls, callouts, and links/images.</li>" +
     "<li>Use <code>&gt; [!NOTE]</code>, <code>&gt; [!TIP]</code>, <code>&gt; [!IMPORTANT]</code>, <code>&gt; [!WARNING]</code>, or <code>&gt; [!CAUTION]</code> for GitHub-style alert callouts.</li>" +
     "<li>Write LaTeX math with <code>$inline$</code> or <code>$$block$$</code> formulas (rendered with KaTeX).</li>" +
     "<li>Select text and paste a URL to turn it into a link, or paste cells from Excel/Sheets to create a Markdown table automatically.</li>" +
@@ -84,7 +84,7 @@
     "<h3>Mẹo</h3><ul class=\"tips\">" +
     "<li>Kéo thả một hoặc nhiều file <code>.md</code> vào cửa sổ để mở.</li>" +
     "<li>Nhấp ô checkbox trong bản xem để đánh dấu việc đã xong, nội dung markdown tự cập nhật.</li>" +
-    "<li>Dùng chế độ Chuyên nghiệp để sửa trực tiếp nội dung đã hiển thị bằng các công cụ định dạng.</li>" +
+    "<li>Dùng chế độ Chuyên nghiệp để sửa trực tiếp nội dung đã hiển thị: nhấp vào bảng để thêm/xoá/di chuyển hàng cột, nhấp vào ảnh/liên kết/khung thông báo để chỉnh sửa nhanh.</li>" +
     "<li>Dùng <code>&gt; [!NOTE]</code>, <code>&gt; [!TIP]</code>, <code>&gt; [!IMPORTANT]</code>, <code>&gt; [!WARNING]</code>, hoặc <code>&gt; [!CAUTION]</code> để tạo khung thông báo chuẩn GitHub.</li>" +
     "<li>Viết công thức toán học LaTeX bằng <code>$inline$</code> hoặc <code>$$block$$</code> (hiển thị với KaTeX).</li>" +
     "<li>Bôi đen văn bản rồi dán URL để tự tạo liên kết, hoặc dán bảng từ Excel/Google Sheets để tự chuyển thành bảng Markdown.</li>" +
@@ -360,7 +360,39 @@
       "tpl.content.readme": "# Project Name\n\nA concise description of what this project does and who it is for.\n\n> [!TIP]\n> Built for speed, privacy, and simplicity.\n\n## Features\n\n- Fast live preview with synchronized scrolling\n- Diagrams with **Mermaid** and math with **KaTeX**\n- Export to HTML, Word, PDF, or ZIP\n\n## Quick Start\n\n```bash\ngit clone https://github.com/username/project.git\ncd project\n```\n\n## Architecture\n\n```mermaid\nflowchart LR\n  User[User Browser] --> App[Web App]\n  App --> Store[(LocalStorage)]\n  App --> Export[HTML / Word / PDF]\n```\n\n## License\n\nMIT © {year}\n",
       "tpl.content.spec": "# Technical Specification: Feature X\n\n## 1. Overview\n\nSummarize the problem statement and proposed solution.\n\n> [!IMPORTANT]\n> All data must remain client-side with zero external server dependencies.\n\n## 2. System Flow\n\n```mermaid\nsequenceDiagram\n  participant U as User\n  participant E as Editor\n  participant P as Preview\n  U->>E: Type Markdown\n  E->>P: Render AST + Diagrams + Math\n```\n\n## 3. Risks & Mitigations\n\n> [!WARNING]\n> Large documents may increase render time; debounce updates to 150ms.\n\n> [!CAUTION]\n> Clearing browser site data will erase local storage unless backed up.\n",
       "tpl.content.tasks": "# Task Tracker\n\n## High Priority\n\n- [ ] Complete core feature implementation\n- [ ] Verify dark mode contrast and accessibility\n\n## In Progress\n\n- [x] Set up document folder structure\n- [ ] Write user documentation\n\n## Backlog\n\n| Task | Priority | Estimate |\n| --- | --- | --- |\n| Offline PWA caching | High | 2h |\n| Template library | Medium | 1h |\n",
-      "tpl.content.math": "# Math & Diagrams Showcase\n\n## 1. LaTeX Math (KaTeX)\n\nInline formula: Euler's identity $e^{i\\pi} + 1 = 0$ and the quadratic formula $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$.\n\nDisplay equation (Gaussian integral):\n\n$$\n\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}\n$$\n\nMatrix & summation:\n\n$$\n\\sum_{k=1}^{n} k^2 = \\frac{n(n+1)(2n+1)}{6}\n$$\n\n## 2. Mermaid State Diagram\n\n```mermaid\nstateDiagram-v2\n  [*] --> Draft\n  Draft --> Review : Submit\n  Review --> Published : Approve\n  Review --> Draft : Request changes\n```\n"
+      "tpl.content.math": "# Math & Diagrams Showcase\n\n## 1. LaTeX Math (KaTeX)\n\nInline formula: Euler's identity $e^{i\\pi} + 1 = 0$ and the quadratic formula $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$.\n\nDisplay equation (Gaussian integral):\n\n$$\n\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}\n$$\n\nMatrix & summation:\n\n$$\n\\sum_{k=1}^{n} k^2 = \\frac{n(n+1)(2n+1)}{6}\n$$\n\n## 2. Mermaid State Diagram\n\n```mermaid\nstateDiagram-v2\n  [*] --> Draft\n  Draft --> Review : Submit\n  Review --> Published : Approve\n  Review --> Draft : Request changes\n```\n",
+      "ptb.aria": "Table editing tools",
+      "ptb.row": "Row",
+      "ptb.col": "Col",
+      "ptb.align": "Align",
+      "ptb.rowAbove": "Insert row above",
+      "ptb.rowBelow": "Insert row below (Ctrl+Enter)",
+      "ptb.rowUp": "Move row up (Alt+↑)",
+      "ptb.rowDown": "Move row down (Alt+↓)",
+      "ptb.rowDel": "Delete row",
+      "ptb.colLeft": "Insert column left",
+      "ptb.colRight": "Insert column right",
+      "ptb.colMoveLeft": "Move column left (Alt+←)",
+      "ptb.colMoveRight": "Move column right (Alt+→)",
+      "ptb.colDel": "Delete column",
+      "ptb.alignLeft": "Align column left",
+      "ptb.alignCenter": "Align column center",
+      "ptb.alignRight": "Align column right",
+      "ptb.tableDup": "Duplicate table",
+      "ptb.tableDel": "Delete entire table",
+      "ptb.addRowEnd": "Add row at bottom",
+      "ptb.addColEnd": "Add column at right",
+      "tp.title": "Insert table",
+      "tp.insert": "Insert",
+      "tp.rowsAria": "Rows",
+      "tp.colsAria": "Columns",
+      "pro.mathPrompt": "Enter LaTeX math formula:",
+      "pro.alertClickTitle": "Click to change alert type (Note → Tip → Important → Warning → Caution)",
+      "pmb.openLink": "Open",
+      "pmb.editLink": "Edit URL",
+      "pmb.unlink": "Unlink",
+      "pmb.editImg": "Edit image",
+      "pmb.delImg": "Delete image"
     },
 
     vi: {
@@ -577,7 +609,39 @@
       "tpl.content.readme": "# Tên Dự Án\n\nMô tả ngắn gọn về mục đích của dự án và đối tượng sử dụng.\n\n> [!TIP]\n> Thiết kế gọn nhẹ, nhanh chóng và bảo mật dữ liệu.\n\n## Tính năng nổi bật\n\n- Xem trước trực tiếp kèm cuộn đồng bộ mượt mà\n- Hỗ trợ vẽ sơ đồ **Mermaid** và công thức toán **KaTeX**\n- Xuất ra HTML, Word, PDF hoặc gói ZIP\n\n## Cài đặt nhanh\n\n```bash\ngit clone https://github.com/username/project.git\ncd project\n```\n\n## Kiến trúc\n\n```mermaid\nflowchart LR\n  User[Trình duyệt] --> App[Ứng dụng Web]\n  App --> Store[(LocalStorage)]\n  App --> Export[HTML / Word / PDF]\n```\n\n## Giấy phép\n\nMIT © {year}\n",
       "tpl.content.spec": "# Đặc tả Kỹ thuật: Tính năng X\n\n## 1. Tổng quan\n\nTóm tắt bài toán cần giải quyết và giải pháp đề xuất.\n\n> [!IMPORTANT]\n> Toàn bộ dữ liệu phải được xử lý tại trình duyệt, không phụ thuộc máy chủ ngoài.\n\n## 2. Luồng hoạt động\n\n```mermaid\nsequenceDiagram\n  participant U as Người dùng\n  participant E as Trình soạn thảo\n  participant P as Bản xem trước\n  U->>E: Gõ Markdown\n  E->>P: Hiển thị HTML + Sơ đồ + Toán học\n```\n\n## 3. Rủi ro & Giải pháp\n\n> [!WARNING]\n> Tài liệu quá dài có thể gây trễ khi vẽ lại; cần debounce ở mức 150ms.\n\n> [!CAUTION]\n> Xoá dữ liệu duyệt web sẽ làm mất dữ liệu cục bộ nếu chưa sao lưu.\n",
       "tpl.content.tasks": "# Quản lý Công việc\n\n## Ưu tiên cao\n\n- [ ] Hoàn thiện các tính năng cốt lõi\n- [ ] Kiểm tra độ tương phản giao diện tối (Dark mode)\n\n## Đang thực hiện\n\n- [x] Tổ chức cấu trúc thư mục tài liệu\n- [ ] Viết hướng dẫn sử dụng\n\n## Dự kiến (Backlog)\n\n| Công việc | Độ ưu tiên | Ước lượng |\n| --- | --- | --- |\n| Bộ nhớ đệm Offline PWA | Cao | 2h |\n| Thư viện mẫu tài liệu | Trung bình | 1h |\n",
-      "tpl.content.math": "# Công thức Toán học & Sơ đồ\n\n## 1. Toán học LaTeX (KaTeX)\n\nCông thức trong dòng: Đồng nhất thức Euler $e^{i\\pi} + 1 = 0$ và nghiệm phương trình bậc hai $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$.\n\nCông thức khối (Tích phân Gauss):\n\n$$\n\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}\n$$\n\nTổng chuỗi:\n\n$$\n\\sum_{k=1}^{n} k^2 = \\frac{n(n+1)(2n+1)}{6}\n$$\n\n## 2. Sơ đồ trạng thái Mermaid\n\n```mermaid\nstateDiagram-v2\n  [*] --> BanNhap\n  BanNhap --> Duyet : Gửi duyệt\n  Duyet --> XuatBan : Phê duyệt\n  Duyet --> BanNhap : Yêu cầu sửa\n```\n"
+      "tpl.content.math": "# Công thức Toán học & Sơ đồ\n\n## 1. Toán học LaTeX (KaTeX)\n\nCông thức trong dòng: Đồng nhất thức Euler $e^{i\\pi} + 1 = 0$ và nghiệm phương trình bậc hai $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$.\n\nCông thức khối (Tích phân Gauss):\n\n$$\n\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}\n$$\n\nTổng chuỗi:\n\n$$\n\\sum_{k=1}^{n} k^2 = \\frac{n(n+1)(2n+1)}{6}\n$$\n\n## 2. Sơ đồ trạng thái Mermaid\n\n```mermaid\nstateDiagram-v2\n  [*] --> BanNhap\n  BanNhap --> Duyet : Gửi duyệt\n  Duyet --> XuatBan : Phê duyệt\n  Duyet --> BanNhap : Yêu cầu sửa\n```\n",
+      "ptb.aria": "Công cụ chỉnh sửa bảng",
+      "ptb.row": "Hàng",
+      "ptb.col": "Cột",
+      "ptb.align": "Căn cột",
+      "ptb.rowAbove": "Thêm hàng phía trên",
+      "ptb.rowBelow": "Thêm hàng phía dưới (Ctrl+Enter)",
+      "ptb.rowUp": "Chuyển hàng lên (Alt+↑)",
+      "ptb.rowDown": "Chuyển hàng xuống (Alt+↓)",
+      "ptb.rowDel": "Xoá hàng hiện tại",
+      "ptb.colLeft": "Thêm cột bên trái",
+      "ptb.colRight": "Thêm cột bên phải",
+      "ptb.colMoveLeft": "Chuyển cột sang trái (Alt+←)",
+      "ptb.colMoveRight": "Chuyển cột sang phải (Alt+→)",
+      "ptb.colDel": "Xoá cột hiện tại",
+      "ptb.alignLeft": "Căn trái cột",
+      "ptb.alignCenter": "Căn giữa cột",
+      "ptb.alignRight": "Căn phải cột",
+      "ptb.tableDup": "Nhân bản bảng",
+      "ptb.tableDel": "Xoá toàn bộ bảng",
+      "ptb.addRowEnd": "Thêm hàng vào cuối bảng",
+      "ptb.addColEnd": "Thêm cột vào bên phải bảng",
+      "tp.title": "Chèn bảng",
+      "tp.insert": "Chèn",
+      "tp.rowsAria": "Số hàng",
+      "tp.colsAria": "Số cột",
+      "pro.mathPrompt": "Nhập công thức toán LaTeX:",
+      "pro.alertClickTitle": "Nhấp để đổi loại khung thông báo (Ghi chú → Mẹo → Quan trọng → Cảnh báo → Thận trọng)",
+      "pmb.openLink": "Mở",
+      "pmb.editLink": "Sửa liên kết",
+      "pmb.unlink": "Bỏ liên kết",
+      "pmb.editImg": "Sửa ảnh",
+      "pmb.delImg": "Xoá ảnh"
     }
   };
 
