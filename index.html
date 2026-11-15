@@ -338,6 +338,40 @@
             role="textbox" aria-multiline="true" data-i18n-aria="pro.editorLabel"
             aria-label="Professional editing area" data-i18n-empty="pro.empty"
             data-empty="Type or paste formatted content here."></article>
+          <div id="pro-table-bar" class="pro-floating-bar pro-table-bar" role="toolbar" data-i18n-aria="ptb.aria" aria-label="Table editing tools" hidden>
+            <span class="ptb-group">
+              <span class="ptb-lbl" data-i18n="ptb.row">Row</span>
+              <button type="button" data-table-cmd="row-above" data-i18n-title="ptb.rowAbove" title="Insert row above">+↑</button>
+              <button type="button" data-table-cmd="row-below" data-i18n-title="ptb.rowBelow" title="Insert row below">+↓</button>
+              <button type="button" data-table-cmd="row-up" data-i18n-title="ptb.rowUp" title="Move row up">↑</button>
+              <button type="button" data-table-cmd="row-down" data-i18n-title="ptb.rowDown" title="Move row down">↓</button>
+              <button type="button" class="ptb-del" data-table-cmd="row-del" data-i18n-title="ptb.rowDel" title="Delete row">✕</button>
+            </span>
+            <span class="tb-sep"></span>
+            <span class="ptb-group">
+              <span class="ptb-lbl" data-i18n="ptb.col">Col</span>
+              <button type="button" data-table-cmd="col-left" data-i18n-title="ptb.colLeft" title="Insert column left">+←</button>
+              <button type="button" data-table-cmd="col-right" data-i18n-title="ptb.colRight" title="Insert column right">+→</button>
+              <button type="button" data-table-cmd="col-left-move" data-i18n-title="ptb.colMoveLeft" title="Move column left">←</button>
+              <button type="button" data-table-cmd="col-right-move" data-i18n-title="ptb.colMoveRight" title="Move column right">→</button>
+              <button type="button" class="ptb-del" data-table-cmd="col-del" data-i18n-title="ptb.colDel" title="Delete column">✕</button>
+            </span>
+            <span class="tb-sep"></span>
+            <span class="ptb-group">
+              <span class="ptb-lbl" data-i18n="ptb.align">Align</span>
+              <button type="button" data-table-cmd="col-align-left" data-i18n-title="ptb.alignLeft" title="Align column left">≡</button>
+              <button type="button" data-table-cmd="col-align-center" data-i18n-title="ptb.alignCenter" title="Align column center">≣</button>
+              <button type="button" data-table-cmd="col-align-right" data-i18n-title="ptb.alignRight" title="Align column right">≡</button>
+            </span>
+            <span class="tb-sep"></span>
+            <span class="ptb-group">
+              <button type="button" data-table-cmd="table-dup" data-i18n-title="ptb.tableDup" title="Duplicate table"><svg class="i"><use href="#i-copy"/></svg></button>
+              <button type="button" class="ptb-del" data-table-cmd="table-del" data-i18n-title="ptb.tableDel" title="Delete entire table"><svg class="i"><use href="#i-trash"/></svg></button>
+            </span>
+          </div>
+          <button id="pro-add-row-edge" type="button" class="pro-table-edge pro-edge-row" data-i18n-title="ptb.addRowEnd" title="Add row at bottom" hidden>+</button>
+          <button id="pro-add-col-edge" type="button" class="pro-table-edge pro-edge-col" data-i18n-title="ptb.addColEnd" title="Add column at right" hidden>+</button>
+          <div id="pro-media-bar" class="pro-floating-bar pro-media-bar" role="toolbar" hidden></div>
         </section>
       </main>
       <nav id="outline" class="outline" data-i18n-aria="outline.label" aria-label="Outline" hidden>
